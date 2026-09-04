@@ -1,0 +1,50 @@
+# datasets and weights are never committed (DVC pointers only)
+datasets/*
+!datasets/.gitkeep
+!datasets/README.md
+!datasets/*.dvc
+runs/
+*.pt
+*.pth
+*.onnx
+*.mlpackage/
+*.mlmodel
+*.safetensors
+wandb/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+uv.lock.tmp
+
+# swift
+swift/RoofGeometry/.build/
+swift/RoofGeometry/.swiftpm/
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+
+# docs
+site/
+
+# paper
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.pdf
+paper/*.synctex.gz
+
+# local
+.env
+.DS_Store
