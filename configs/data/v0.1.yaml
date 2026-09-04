@@ -1,0 +1,47 @@
+# RoofSight dataset v0.1: 500 images, NRW residential streets + own photos.
+version: v0.1
+out: datasets
+target_images: 500
+min_obstacle_fraction: 0.3
+
+mapillary:
+  enabled: true
+  camera_type: perspective
+  min_quality_score: 0.6
+  per_bbox_limit: 150
+  image_size: thumb_2048_url
+  bboxes:
+    # west, south, east, north (WGS84). Residential quarters, not arterial roads.
+    - { name: koeln-suelz,        region: DE-NRW, west: 6.9100, south: 50.9080, east: 6.9350, north: 50.9220 }
+    - { name: bonn-beuel,         region: DE-NRW, west: 7.1150, south: 50.7330, east: 7.1400, north: 50.7480 }
+    - { name: duesseldorf-gerresheim, region: DE-NRW, west: 6.8500, south: 51.2280, east: 6.8800, north: 51.2450 }
+    - { name: muenster-kinderhaus, region: DE-NRW, west: 7.6000, south: 51.9900, east: 7.6300, north: 52.0050 }
+    - { name: aachen-burtscheid,  region: DE-NRW, west: 6.0800, south: 50.7550, east: 6.1050, north: 50.7700 }
+
+own:
+  enabled: true
+  root: datasets/own
+  attribution: RoofSight contributors
+  region: DE-NRW
+
+dedupe:
+  hash_size: 16
+  max_hamming: 6
+
+anonymize:
+  backend: deface
+  threshold: 0.2
+  fail_if_missing: true
+
+roof_filter:
+  min_roof_fraction: 0.05
+  prompt: roof
+
+split:
+  train: 0.70
+  val: 0.10
+  test: 0.15
+  verify: 0.05
+  verify_count: 50
+  frozen_test: datasets/frozen_test_v0.1.json
+  seed: 20260101
