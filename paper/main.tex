@@ -1,0 +1,33 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{RoofSight: Ground-View Roof and Rooftop-Obstacle Segmentation for On-Site PV Planning}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Draft. A dataset of ground-level photographs of residential roofs with instance masks for roof
+planes, rooftop obstacles, vegetation occlusion and roof edges; a benchmark with fixed splits;
+baselines with RF-DETR-Seg, SAM~3 zero-shot, YOLO26-seg and Mask2Former; on-device pitch and
+azimuth estimation from one photo and the phone's pose; and a study of which obstacles the
+ground view finds that satellite imagery does not.
+\end{abstract}
+
+\section{Introduction}
+\section{Related work}
+\section{Dataset}
+\section{Benchmark}
+\section{Baselines}
+\input{results.tex}
+\section{Roof geometry from one photo}
+\section{Ground view versus satellite: obstacle recall}
+\section{Limitations}
+\section{Conclusion}
+
+\end{document}

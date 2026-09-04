@@ -1,0 +1,46 @@
+# SAM 3 text prompts per category. Several synonyms each; NMS across synonyms afterwards.
+# Category names must match roofsight/categories.py exactly. Ids are never written here.
+version: v0.1
+nms_iou: 0.7
+
+categories:
+  roof_plane:
+    prompts: ["roof", "roof surface", "sloped roof plane", "flat roof"]
+    min_area_px: 2000
+    score_threshold: 0.35
+  chimney:
+    prompts: ["chimney", "brick chimney stack", "chimney pipe on roof"]
+    min_area_px: 60
+    score_threshold: 0.3
+  dormer:
+    prompts: ["dormer", "dormer window", "roof dormer with window"]
+    min_area_px: 400
+    score_threshold: 0.3
+  skylight:
+    prompts: ["skylight", "roof window", "velux window", "solar tube on roof"]
+    min_area_px: 40
+    score_threshold: 0.3
+  antenna:
+    prompts: ["antenna", "satellite dish", "tv aerial on roof"]
+    min_area_px: 30
+    score_threshold: 0.3
+  vent:
+    prompts: ["roof vent", "vent pipe on roof", "ventilation hood on roof", "exhaust stack"]
+    min_area_px: 25
+    score_threshold: 0.3
+  snow_guard:
+    prompts: ["snow guard", "snow rail on roof", "snow hooks on roof tiles"]
+    min_area_px: 25
+    score_threshold: 0.25
+  existing_pv:
+    prompts: ["solar panel", "photovoltaic module on roof", "solar thermal collector"]
+    min_area_px: 300
+    score_threshold: 0.35
+  tree_occlusion:
+    prompts: ["tree branches in front of roof", "foliage covering roof", "tree"]
+    min_area_px: 500
+    score_threshold: 0.3
+  roof_edge:
+    prompts: ["eave line of roof", "ridge line of roof", "hip line of roof", "valley line of roof", "verge of gable roof"]
+    min_area_px: 20
+    score_threshold: 0.25
