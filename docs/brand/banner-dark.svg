@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-label="roofsight: roof planes and obstacles from one ground-level photo">
+  <rect width="1200" height="260" fill="#0d1117"/>
+  <!-- house silhouette -->
+  <g transform="translate(70,40)">
+    <polygon points="0,150 90,40 180,150" fill="#16233a" stroke="#0b7bd6" stroke-width="3" stroke-linejoin="round"/>
+    <polygon points="90,40 180,150 270,150 180,40" fill="#1b2d4a" stroke="#0b7bd6" stroke-width="3" stroke-linejoin="round"/>
+    <line x1="90" y1="40" x2="180" y2="40" stroke="#0b7bd6" stroke-width="3"/>
+    <rect x="118" y="55" width="16" height="30" fill="#f2a93b" stroke="#b86d0b" stroke-width="2"/>
+    <rect x="200" y="95" width="26" height="18" fill="#7fc8a9" stroke="#1f7a55" stroke-width="2" transform="skewX(-25)"/>
+    <line x1="150" y1="70" x2="150" y2="48" stroke="#8a4fd6" stroke-width="3"/>
+    <circle cx="150" cy="46" r="5" fill="#8a4fd6"/>
+    <rect x="0" y="150" width="270" height="40" fill="#1c2128" stroke="#4b5563" stroke-width="2"/>
+    <text x="70" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#0b7bd6">roof_plane</text>
+    <text x="135" y="110" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#b86d0b">chimney</text>
+  </g>
+  <text x="400" y="118" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#f0f6fc">roofsight</text>
+  <text x="404" y="160" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#a9b1ba">Roof planes, obstacles, pitch and azimuth</text>
+  <text x="404" y="192" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#a9b1ba">from one photo taken on the street.</text>
+</svg>

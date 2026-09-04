@@ -1,0 +1,31 @@
+site_name: roofsight
+site_url: https://bnymndev.github.io/roofsight/
+repo_url: https://github.com/bnymnDev/roofsight
+repo_name: bnymnDev/roofsight
+edit_uri: edit/main/docs/
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      toggle: { icon: material/brightness-7, name: dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      toggle: { icon: material/brightness-4, name: light mode }
+  features: [navigation.sections, content.code.copy, content.action.edit]
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight
+nav:
+  - Overview: index.md
+  - Dataset: dataset.md
+  - Labeling: labeling.md
+  - Benchmark: benchmark.md
+  - Leaderboard: leaderboard.md
+  - Geometry: geometry.md
+  - Model card: model_card.md
+  - Decisions: decisions.md
