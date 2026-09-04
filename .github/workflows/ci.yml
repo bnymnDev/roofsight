@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - run: uv sync --group dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest --cov=roofsight --cov-report=term-missing
+      - name: leaderboard is generated, not edited
+        run: |
+          uv run roofsight leaderboard
+          git diff --exit-code docs/leaderboard.md paper/results.tex
+
+  swift:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift --version
+      - run: swift test
+        working-directory: swift/RoofGeometry
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install 3.12
+      - run: uv sync --extra docs
+      - run: uv run mkdocs build --strict
