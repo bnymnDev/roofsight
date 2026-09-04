@@ -1,0 +1,22 @@
+# RF-DETR-Seg Nano fine-tune from the Roboflow checkpoint.
+model: rfdetr-seg-nano
+dataset_version: v0.1
+dataset_root: datasets
+resolution: 640
+epochs: 60
+batch_size: 8
+grad_accum_steps: 2
+lr: 1.0e-4
+lr_encoder: 1.5e-4
+weight_decay: 1.0e-4
+seed: 42
+early_stopping: true
+augmentations:
+  color_jitter: 0.2
+  random_crop_min_roof_fraction: 0.6
+  horizontal_flip: true
+  vertical_flip: false      # roofs are seen from below; never flip vertically
+  perspective: 0.05
+wandb: false
+wandb_project: roofsight
+runs_root: runs
