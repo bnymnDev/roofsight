@@ -43,6 +43,7 @@ anonymize:
   fail_if_missing: true
 
 roof_filter:
+  backend: sam3            # sam3 (GPU) | file (scores JSON from a SAM 3 run elsewhere or from review)
   min_roof_fraction: 0.05
   prompt: roof
 
@@ -52,5 +53,5 @@ split:
   test: 0.15
   verify: 0.05
   verify_count: 50
-  frozen_test: datasets/frozen_test_v0.1.json
+  frozen_test: configs/data/frozen_test_v0.1.json
   seed: 20260101

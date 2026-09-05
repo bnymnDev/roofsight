@@ -55,12 +55,19 @@ API v4       ≤ 6 bits   egoblur       ≥ 5 % of image  prompts               
 
 ```sh
 export MAPILLARY_TOKEN=MLY|...
-uv run roofsight data build --config configs/data/v0.1.yaml --sam3-checkpoint weights/sam3.pt
+uv run roofsight data build --config configs/data/v0.1.yaml --no-roof-filter     # download, dedupe, anonymize, split
+uv run roofsight data filter datasets/v0.1 --config configs/data/v0.1.yaml \
+    --backend sam3 --sam3-checkpoint weights/sam3.pt                                # or --backend file --scores review.json
 uv run roofsight label --prompts configs/labeling/prompts.yaml --in datasets/v0.1 --out datasets/v0.1 --checkpoint weights/sam3.pt
 uv run roofsight review datasets/v0.1 export      # then: fiftyone app launch
 uv run roofsight review datasets/v0.1 import
 uv run roofsight data validate datasets/v0.1
 ```
+
+The roof filter is a separate step so a build without a GPU still runs; see
+[decisions](decisions.md#no-cpu-stand-in-for-the-sam-3-roof-filter) for why nothing lighter
+than SAM 3 is used. The bbox endpoint of Mapillary does not paginate and fails on large boxes,
+so every box is queried as a 4 × 4 raster with retries; a cell that keeps failing is skipped.
 
 Datasets and weights are never committed. `datasets/` holds DVC pointers only; the remote is
 S3/R2. `dvc pull` fetches a version.

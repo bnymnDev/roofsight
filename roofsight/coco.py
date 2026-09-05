@@ -55,6 +55,7 @@ class ImageRecord(BaseModel):
     anonymized: bool = False
     has_pose: bool = False
     phash: str = ""
+    roof_score: float | None = None
 
     @field_validator("license")
     @classmethod

@@ -54,3 +54,22 @@ images, the own-photo campaign (a weekend walk, 200 houses) moves from M3 to M1.
 
 Cost and terms of service need checking before M4. Fallback: an off-the-shelf aerial model on
 NRW's open orthophotos (opengeodata.nrw.de).
+
+## No CPU stand-in for the SAM 3 roof filter
+
+The first v0.1 build ran on a machine without a GPU, so three cheap replacements for the SAM 3
+roof-presence filter were tried on 16 real Mapillary frames from the NRW boxes, hand-labelled
+roof / no roof:
+
+| Candidate | Result |
+|---|---|
+| CLIP ViT-B/32 zero-shot, full image or upper crops, several prompt sets | near random: clear roofs scored < 0.06, a hedge scored 0.98 |
+| SegFormer-B0 ADE20K, building + house pixel fraction | noise barriers along a motorway 0.34, a house filling a third of the frame 0.003 |
+| Grounding DINO tiny, prompt "a roof of a house" | 23 s per image on CPU and boxes covering the whole frame on a motorway |
+
+Street-level frames are dominated by road, sky and trees; the roof is small, high and often
+partly hidden. Nothing lighter than a promptable segmenter separated the cases. Rather than
+ship a filter that deletes usable images, v0.1 keeps every downloaded frame and the roof
+decision is made in the FiftyOne review: reviewers tag frames without a usable roof, the tags
+become a scores file, and `roofsight data filter --backend file` drops them. When a GPU is
+available, `--backend sam3` does the same automatically.
