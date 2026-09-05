@@ -53,9 +53,12 @@ def data_build(
     sam3_checkpoint: Annotated[Path | None, typer.Option()] = None,
 ) -> None:
     """Download, dedupe, anonymize, filter, split. Writes <out>/<version>/images.json."""
+    import logging
+
     from roofsight.data.build import build
     from roofsight.data.config import DataConfig
 
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     cfg = DataConfig.load(config)
     roof_filter = None
     if not no_roof_filter:
@@ -68,6 +71,92 @@ def data_build(
         roof_filter = lambda p: roof_fraction(seg, load_image(p), cfg.roof_filter.prompt)  # noqa: E731
     ds = build(cfg, roof_filter)
     console.print(f"[green]built[/] {cfg.version}: {len(ds.images)} images")
+
+
+@data_app.command("fetch")
+def data_fetch(
+    dataset: Annotated[Path, typer.Argument(help="Dataset directory with images.json")],
+    config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False)],
+) -> None:
+    """Re-download the images listed in images.json by Mapillary id, then anonymize them.
+
+    images.json is the manifest in git; this restores the pixels on any machine.
+    """
+    import logging
+
+    from roofsight.data.build import fetch_manifest
+    from roofsight.data.config import DataConfig
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    ds = read_coco(dataset / "images.json")
+    n, missing = fetch_manifest(ds, dataset / "images", DataConfig.load(config))
+    if missing:
+        ids = {r.id for r in missing}
+        ds = ds.model_copy(update={"images": [r for r in ds.images if r.id not in ids]})
+        ds.write(dataset / "images.json")
+        err.print(f"[yellow]{len(missing)} images no longer on Mapillary; removed from manifest[/]")
+    console.print(f"[green]fetched {n}[/] → {dataset / 'images'}")
+
+
+@data_app.command("filter")
+def data_filter(
+    dataset: Annotated[Path, typer.Argument(help="Dataset directory with images.json")],
+    config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False)],
+    backend: Annotated[str | None, typer.Option(help="sam3 | file; default from config")] = None,
+    threshold: Annotated[float | None, typer.Option(help="Override the config threshold")] = None,
+    dry_run: Annotated[bool, typer.Option(help="Score and report, delete nothing")] = False,
+    sam3_checkpoint: Path | None = None,
+    scores: Annotated[Path | None, typer.Option(help='file backend: {"name.jpg": score}')] = None,
+) -> None:
+    """Score roof presence per image, drop images below the threshold, re-assign splits.
+
+    Writes images.json with roof_score on every record and dropped.json for review.
+    """
+    import logging
+
+    from roofsight.data.config import DataConfig
+    from roofsight.data.roof_filter import Scorer, apply_filter, file_scorer, score_all
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    cfg = DataConfig.load(config)
+    be = backend or cfg.roof_filter.backend
+    ds = read_coco(dataset / "images.json")
+    unscored = [r for r in ds.images if r.roof_score is None]
+    if unscored:
+        scorer: Scorer
+        if be == "file":
+            if scores is None:
+                raise typer.BadParameter("--scores is required for the file backend")
+            scorer = file_scorer(scores)
+        elif be == "sam3":
+            from roofsight.labeling.pipeline import load_image
+            from roofsight.labeling.sam3 import Sam3Segmenter, roof_fraction
+
+            if sam3_checkpoint is None:
+                raise typer.BadParameter("--sam3-checkpoint is required for the sam3 backend")
+            seg = Sam3Segmenter(sam3_checkpoint)
+            scorer = lambda p: roof_fraction(seg, load_image(p), cfg.roof_filter.prompt)  # noqa: E731
+        else:
+            raise typer.BadParameter("backend must be sam3 or file")
+        score_all(unscored, dataset / "images", scorer)
+        ds.write(dataset / "images.json")  # scores persisted before any deletion
+    thr = threshold if threshold is not None else cfg.roof_filter.min_roof_fraction
+    frozen: list[int] = []
+    if cfg.split.frozen_test and cfg.split.frozen_test.exists():
+        frozen = json.loads(cfg.split.frozen_test.read_text())
+    filtered, dropped = apply_filter(
+        ds, dataset / "images", thr, cfg.split, frozen, delete_files=not dry_run
+    )
+    (dataset / "dropped.json").write_text(
+        json.dumps([r.model_dump(exclude_none=True) for r in dropped], ensure_ascii=False),
+        encoding="utf-8",
+    )
+    if not dry_run:
+        filtered.write(dataset / "images.json")
+    console.print(
+        f"{'would keep' if dry_run else 'kept'} {len(filtered.images)}, "
+        f"dropped {len(dropped)} below {thr} ({be})"
+    )
 
 
 @data_app.command("validate")

@@ -8,15 +8,24 @@ mapillary:
   enabled: true
   camera_type: perspective
   min_quality_score: 0.6
-  per_bbox_limit: 150
+  per_bbox_limit: 120
+  grid: 4                 # each bbox is queried as a 4×4 raster (the API does not paginate)
+  per_cell_limit: 100
   image_size: thumb_2048_url
   bboxes:
-    # west, south, east, north (WGS84). Residential quarters, not arterial roads.
-    - { name: koeln-suelz,        region: DE-NRW, west: 6.9100, south: 50.9080, east: 6.9350, north: 50.9220 }
-    - { name: bonn-beuel,         region: DE-NRW, west: 7.1150, south: 50.7330, east: 7.1400, north: 50.7480 }
-    - { name: duesseldorf-gerresheim, region: DE-NRW, west: 6.8500, south: 51.2280, east: 6.8800, north: 51.2450 }
-    - { name: muenster-kinderhaus, region: DE-NRW, west: 7.6000, south: 51.9900, east: 7.6300, north: 52.0050 }
-    - { name: aachen-burtscheid,  region: DE-NRW, west: 6.0800, south: 50.7550, east: 6.1050, north: 50.7700 }
+    # west, south, east, north (WGS84). Single-family and terraced housing, not city centres.
+    - { name: koeln-widdersdorf,     region: DE-NRW, west: 6.8380, south: 50.9560, east: 6.8620, north: 50.9700 }
+    - { name: koeln-rodenkirchen,    region: DE-NRW, west: 6.9850, south: 50.8780, east: 7.0100, north: 50.8930 }
+    - { name: bonn-roettgen,         region: DE-NRW, west: 7.0600, south: 50.6820, east: 7.0900, north: 50.6980 }
+    - { name: bonn-beuel-holzlar,    region: DE-NRW, west: 7.1650, south: 50.7380, east: 7.1950, north: 50.7540 }
+    - { name: duesseldorf-angermund, region: DE-NRW, west: 6.7700, south: 51.3200, east: 6.8000, north: 51.3380 }
+    - { name: duesseldorf-hubbelrath, region: DE-NRW, west: 6.8900, south: 51.2450, east: 6.9250, north: 51.2620 }
+    - { name: muenster-gievenbeck,   region: DE-NRW, west: 7.5700, south: 51.9550, east: 7.6000, north: 51.9720 }
+    - { name: muenster-hiltrup,      region: DE-NRW, west: 7.6250, south: 51.8950, east: 7.6600, north: 51.9130 }
+    - { name: aachen-laurensberg,    region: DE-NRW, west: 6.0450, south: 50.7950, east: 6.0800, north: 50.8130 }
+    - { name: essen-kettwig,         region: DE-NRW, west: 6.9250, south: 51.3550, east: 6.9600, north: 51.3720 }
+    - { name: dortmund-kirchhoerde,  region: DE-NRW, west: 7.4400, south: 51.4600, east: 7.4750, north: 51.4780 }
+    - { name: paderborn-schloss-neuhaus, region: DE-NRW, west: 8.7000, south: 51.7400, east: 8.7350, north: 51.7580 }
 
 own:
   enabled: true
@@ -34,6 +43,7 @@ anonymize:
   fail_if_missing: true
 
 roof_filter:
+  backend: sam3            # sam3 (GPU) | file (scores JSON from a SAM 3 run elsewhere or from review)
   min_roof_fraction: 0.05
   prompt: roof
 
@@ -43,5 +53,5 @@ split:
   test: 0.15
   verify: 0.05
   verify_count: 50
-  frozen_test: datasets/frozen_test_v0.1.json
+  frozen_test: configs/data/frozen_test_v0.1.json
   seed: 20260101

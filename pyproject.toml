@@ -28,11 +28,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+data = ["deface>=1.5"]
 train = ["torch>=2.2", "torchvision>=0.17", "rfdetr>=1.0", "supervision>=0.20"]
 label = ["fiftyone>=0.24", "supervision>=0.20"]
 export = ["onnx>=1.15", "onnxruntime>=1.17", "coremltools>=8.0"]
 docs = ["mkdocs-material>=9.5"]
-all = ["roofsight[train,label,export,docs]"]
+all = ["roofsight[data,train,label,export,docs]"]
 
 [project.scripts]
 roofsight = "roofsight.cli:app"

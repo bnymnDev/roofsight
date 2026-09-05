@@ -7,7 +7,7 @@ obstacles, vegetation occlusion and roof edges. COCO format. CC-BY-SA 4.0.
 
 | Version | Images | Regions | Status | Notes |
 |---|---|---|---|---|
-| v0.1 | 500 (target) | DE-NRW | in progress | test split frozen at release; own-photo subset with ARKit pose |
+| v0.1 | 1 418 downloaded, 500 reviewed (target) | DE-NRW, 12 suburbs | built, review pending | manifest in git, test ids frozen (213); own-photo subset with ARKit pose to come |
 | v0.2 | 2 000 (target) | DE, NL, AT | planned | more roof styles; satellite recall study subset |
 | v1.0 | 5 000+ (target) | DE, NL, AT | planned | 100 % of train reviewed |
 
@@ -55,15 +55,31 @@ API v4       ≤ 6 bits   egoblur       ≥ 5 % of image  prompts               
 
 ```sh
 export MAPILLARY_TOKEN=MLY|...
-uv run roofsight data build --config configs/data/v0.1.yaml --sam3-checkpoint weights/sam3.pt
+uv run roofsight data build --config configs/data/v0.1.yaml --no-roof-filter     # download, dedupe, anonymize, split
+uv run roofsight data filter datasets/v0.1 --config configs/data/v0.1.yaml \
+    --backend sam3 --sam3-checkpoint weights/sam3.pt                                # or --backend file --scores review.json
 uv run roofsight label --prompts configs/labeling/prompts.yaml --in datasets/v0.1 --out datasets/v0.1 --checkpoint weights/sam3.pt
 uv run roofsight review datasets/v0.1 export      # then: fiftyone app launch
 uv run roofsight review datasets/v0.1 import
 uv run roofsight data validate datasets/v0.1
 ```
 
-Datasets and weights are never committed. `datasets/` holds DVC pointers only; the remote is
-S3/R2. `dvc pull` fetches a version.
+The roof filter is a separate step so a build without a GPU still runs; see
+[decisions](decisions.md#no-cpu-stand-in-for-the-sam-3-roof-filter) for why nothing lighter
+than SAM 3 is used. The bbox endpoint of Mapillary does not paginate and fails on large boxes,
+so every box is queried as a 4 × 4 raster with retries; a cell that keeps failing is skipped.
+
+Images and weights are never committed. What is in git is the **manifest**
+`datasets/<version>/images.json`: every image record with its Mapillary id, license,
+attribution, perceptual hash and split. That makes a build reproducible without hosting
+the pixels:
+
+```sh
+uv run roofsight data fetch datasets/v0.1 --config configs/data/v0.1.yaml   # re-download by id + anonymize
+```
+
+Images that Mapillary has since removed are dropped from the manifest and reported.
+Annotations and weights go through DVC (S3/R2 remote, to be set up); `dvc pull` fetches them.
 
 ## Contributing images
 
@@ -81,5 +97,10 @@ DVC pointer, or send a link in an issue.
 
 ## Changelog
 
-- **v0.1** (in progress): initial category list (ids 1–10), NRW residential streets, own-photo
-  subset, frozen test split.
+- **v0.1 build 1** (2026-09-05): 1 440 frames from 12 NRW suburbs (Köln, Bonn, Düsseldorf,
+  Münster, Aachen, Essen, Dortmund, Paderborn; 120 per box), 22 near-duplicates removed,
+  1 418 anonymized with `deface`; splits 1013 / 142 / 213 / 50 (train / val / test / verify);
+  213 test ids frozen in `configs/data/frozen_test_v0.1.json`. No roof filter yet (no GPU in the
+  build environment); roughly half the frames show no usable roof and will be removed in review.
+- **v0.1** (planned): initial category list (ids 1–10), reviewed roof presence, SAM 3 auto-labels,
+  own-photo subset.
