@@ -27,6 +27,11 @@ class StubSegmenter:
             return [(0.7, m)]
         return []
 
+    def segment_many(
+        self, image: np.ndarray, prompts: list[str]
+    ) -> list[list[tuple[float, np.ndarray]]]:
+        return [self.segment(image, p) for p in prompts]
+
 
 def test_prompt_config_loads() -> None:
     cfg = PromptConfig.load(PROMPTS)
