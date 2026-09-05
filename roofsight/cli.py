@@ -53,9 +53,12 @@ def data_build(
     sam3_checkpoint: Annotated[Path | None, typer.Option()] = None,
 ) -> None:
     """Download, dedupe, anonymize, filter, split. Writes <out>/<version>/images.json."""
+    import logging
+
     from roofsight.data.build import build
     from roofsight.data.config import DataConfig
 
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     cfg = DataConfig.load(config)
     roof_filter = None
     if not no_roof_filter:

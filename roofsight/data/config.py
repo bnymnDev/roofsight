@@ -28,6 +28,8 @@ class MapillarySource(BaseModel):
     camera_type: str = "perspective"
     min_quality_score: float = 0.6
     per_bbox_limit: int = 200
+    grid: int = 4
+    per_cell_limit: int = 100
     image_size: str = "thumb_2048_url"
 
 

@@ -6,13 +6,17 @@ Images are CC-BY-SA 4.0. Every downloaded record keeps the Mapillary id and crea
 
 from __future__ import annotations
 
+import logging
 import os
+import time
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 API = "https://graph.mapillary.com"
 FIELDS = "id,thumb_2048_url,thumb_1024_url,camera_type,quality_score,creator,captured_at,geometry"
@@ -51,6 +55,23 @@ def parse_image(item: dict[str, Any], size_field: str = "thumb_2048_url") -> Map
     )
 
 
+def grid_cells(bbox: str, n: int) -> list[str]:
+    """Split ``west,south,east,north`` into an ``n × n`` grid of sub-boxes.
+
+    The bbox endpoint does not paginate and returns 500 on boxes with too many images, so
+    small cells with a modest ``limit`` each are the only way to get everything.
+    """
+    w, s, e, nn = (float(v) for v in bbox.split(","))
+    dx, dy = (e - w) / n, (nn - s) / n
+    cells = []
+    for i in range(n):
+        for j in range(n):
+            cells.append(
+                f"{w + i * dx:.6f},{s + j * dy:.6f},{w + (i + 1) * dx:.6f},{s + (j + 1) * dy:.6f}"
+            )
+    return cells
+
+
 def keep(img: MapillaryImage, camera_type: str, min_quality: float) -> bool:
     """The filter from SPEC: perspective only, quality score, no 360°."""
     if img.camera_type != camera_type:
@@ -65,6 +86,27 @@ class MapillaryClient:
             raise RuntimeError("MAPILLARY_TOKEN is not set")
         self._client = client or httpx.Client(timeout=60)
 
+    def _get_cell(self, bbox: str, limit: int, retries: int = 3) -> list[dict[str, Any]]:
+        """One bbox query. On 5xx: back off, halve the limit, retry; give up after ``retries``."""
+        for attempt in range(retries + 1):
+            params: dict[str, Any] = {
+                "access_token": self.token,
+                "fields": FIELDS,
+                "bbox": bbox,
+                "limit": limit,
+            }
+            r = self._client.get(f"{API}/images", params=params)
+            if r.status_code < 500:
+                r.raise_for_status()
+                data: list[dict[str, Any]] = r.json().get("data", [])
+                return data
+            if attempt == retries:
+                log.warning("mapillary: giving up on cell %s after %d retries", bbox, retries)
+                return []
+            time.sleep(1.5 * (attempt + 1))
+            limit = max(10, limit // 2)
+        return []
+
     def search(
         self,
         bbox: str,
@@ -72,36 +114,40 @@ class MapillaryClient:
         camera_type: str = "perspective",
         min_quality: float = 0.6,
         size_field: str = "thumb_2048_url",
+        grid: int = 4,
+        per_cell_limit: int = 100,
     ) -> Iterator[MapillaryImage]:
-        params: dict[str, Any] = {
-            "access_token": self.token,
-            "fields": FIELDS,
-            "bbox": bbox,
-            "limit": min(limit, 2000),
-        }
-        url: str | None = f"{API}/images"
+        """Up to ``limit`` images in ``bbox``: the box is queried as a ``grid × grid`` raster,
+        cells are deduped by image id, and a cell that keeps failing is skipped, not fatal."""
+        seen: set[str] = set()
         yielded = 0
-        while url and yielded < limit:
-            r = self._client.get(url, params=params)
-            r.raise_for_status()
-            body = r.json()
-            for item in body.get("data", []):
+        for cell in grid_cells(bbox, grid):
+            for item in self._get_cell(cell, per_cell_limit):
                 img = parse_image(item, size_field)
-                if img and keep(img, camera_type, min_quality):
-                    yield img
-                    yielded += 1
-                    if yielded >= limit:
-                        return
-            url = (body.get("paging") or {}).get("next")
-            params = {}
+                if img is None or img.id in seen or not keep(img, camera_type, min_quality):
+                    continue
+                seen.add(img.id)
+                yield img
+                yielded += 1
+                if yielded >= limit:
+                    return
 
-    def download(self, img: MapillaryImage, dest: Path) -> Path:
+    def download(self, img: MapillaryImage, dest: Path, retries: int = 3) -> Path:
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.exists():
             return dest
-        with self._client.stream("GET", img.url) as r:
-            r.raise_for_status()
-            with dest.open("wb") as f:
-                for chunk in r.iter_bytes():
-                    f.write(chunk)
+        tmp = dest.with_suffix(".part")
+        for attempt in range(retries + 1):
+            try:
+                with self._client.stream("GET", img.url) as r:
+                    r.raise_for_status()
+                    with tmp.open("wb") as f:
+                        for chunk in r.iter_bytes():
+                            f.write(chunk)
+                tmp.rename(dest)
+                return dest
+            except (httpx.HTTPError, OSError):
+                if attempt == retries:
+                    raise
+                time.sleep(1.5 * (attempt + 1))
         return dest

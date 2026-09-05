@@ -7,6 +7,7 @@ records only, which the labeling pipeline then fills with annotations.
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -21,6 +22,8 @@ from roofsight.data.dedupe import dedupe, phash
 from roofsight.data.mapillary import LICENSE as MAPILLARY_LICENSE
 from roofsight.data.mapillary import MapillaryClient
 from roofsight.data.split import assign_splits
+
+log = logging.getLogger(__name__)
 
 RoofFilter = Callable[[Path], float]
 """Returns the fraction of the image covered by roof. Implemented in labeling/ (SAM 3)."""
@@ -66,16 +69,24 @@ def download_mapillary(config: DataConfig, raw_dir: Path) -> list[ImageRecord]:
     client = MapillaryClient()
     records: list[ImageRecord] = []
     for bbox in config.mapillary.bboxes:
+        before = len(records)
         for img in client.search(
             bbox.as_query(),
             limit=config.mapillary.per_bbox_limit,
             camera_type=config.mapillary.camera_type,
             min_quality=config.mapillary.min_quality_score,
             size_field=config.mapillary.image_size,
+            grid=config.mapillary.grid,
+            per_cell_limit=config.mapillary.per_cell_limit,
         ):
             dest = raw_dir / f"mapillary_{img.id}.jpg"
-            client.download(img, dest)
-            w, h = _image_size(dest)
+            try:
+                client.download(img, dest)
+                w, h = _image_size(dest)
+            except Exception as e:
+                log.warning("skipping %s: %s", img.id, e)
+                dest.unlink(missing_ok=True)
+                continue
             records.append(
                 ImageRecord(
                     id=0,
@@ -89,6 +100,7 @@ def download_mapillary(config: DataConfig, raw_dir: Path) -> list[ImageRecord]:
                     source_id=img.id,
                 )
             )
+        log.info("mapillary: %s (%s): %d images", bbox.name, bbox.region, len(records) - before)
     return records
 
 
