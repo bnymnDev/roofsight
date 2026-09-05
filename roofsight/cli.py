@@ -139,8 +139,10 @@ def data_filter(
             scorer = lambda p: roof_fraction(seg, load_image(p), cfg.roof_filter.prompt)  # noqa: E731
         else:
             raise typer.BadParameter("backend must be sam3 or file")
-        score_all(unscored, dataset / "images", scorer)
-        ds.write(dataset / "images.json")  # scores persisted before any deletion
+        # scores are persisted every 25 images and before any deletion; a restart resumes
+        score_all(
+            unscored, dataset / "images", scorer, lambda _n: ds.write(dataset / "images.json")
+        )
     thr = threshold if threshold is not None else cfg.roof_filter.min_roof_fraction
     frozen: list[int] = []
     if cfg.split.frozen_test and cfg.split.frozen_test.exists():

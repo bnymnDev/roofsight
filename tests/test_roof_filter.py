@@ -20,6 +20,13 @@ def test_score_and_filter(dataset_dir: Path) -> None:
     assert out.images[0].split is not None
 
 
+def test_score_all_reports_progress(dataset_dir: Path) -> None:
+    ds = read_coco(dataset_dir / "annotations.json")
+    seen: list[int] = []
+    score_all(ds.images, dataset_dir / "images", lambda p: 0.5, on_progress=seen.append, every=1)
+    assert seen == [1, 2]
+
+
 def test_filter_requires_scores(dataset_dir: Path) -> None:
     ds = read_coco(dataset_dir / "annotations.json")
     with pytest.raises(ValueError, match="roof_score"):
