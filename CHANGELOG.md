@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Dataset v0.1 build 1: 1 418 anonymized Mapillary frames from twelve NRW suburbs, manifest
+  `datasets/v0.1/images.json` in git, `roofsight data fetch` restores the images by id
+- Mapillary client queries every bbox as a grid with retries; roof filter is a separate step
+  (`data filter`, backends `sam3` and `file`)
 - Repository scaffold: `roofsight` package with `data`, `labeling`, `train`, `eval`, `export`
   and the `roofsight` CLI
 - Fixed category list (ids 1–10) and COCO models with license, attribution, provenance and

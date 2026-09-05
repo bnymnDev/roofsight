@@ -73,6 +73,31 @@ def data_build(
     console.print(f"[green]built[/] {cfg.version}: {len(ds.images)} images")
 
 
+@data_app.command("fetch")
+def data_fetch(
+    dataset: Annotated[Path, typer.Argument(help="Dataset directory with images.json")],
+    config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False)],
+) -> None:
+    """Re-download the images listed in images.json by Mapillary id, then anonymize them.
+
+    images.json is the manifest in git; this restores the pixels on any machine.
+    """
+    import logging
+
+    from roofsight.data.build import fetch_manifest
+    from roofsight.data.config import DataConfig
+
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    ds = read_coco(dataset / "images.json")
+    n, missing = fetch_manifest(ds, dataset / "images", DataConfig.load(config))
+    if missing:
+        ids = {r.id for r in missing}
+        ds = ds.model_copy(update={"images": [r for r in ds.images if r.id not in ids]})
+        ds.write(dataset / "images.json")
+        err.print(f"[yellow]{len(missing)} images no longer on Mapillary; removed from manifest[/]")
+    console.print(f"[green]fetched {n}[/] → {dataset / 'images'}")
+
+
 @data_app.command("filter")
 def data_filter(
     dataset: Annotated[Path, typer.Argument(help="Dataset directory with images.json")],

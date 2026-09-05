@@ -20,7 +20,7 @@ from roofsight.data.anonymize import anonymize
 from roofsight.data.config import DataConfig
 from roofsight.data.dedupe import dedupe, phash
 from roofsight.data.mapillary import LICENSE as MAPILLARY_LICENSE
-from roofsight.data.mapillary import MapillaryClient
+from roofsight.data.mapillary import MapillaryClient, fetch_by_id
 from roofsight.data.split import assign_splits
 
 log = logging.getLogger(__name__)
@@ -166,3 +166,37 @@ def build(
     )
     ds.write(out / "images.json")
     return ds
+
+
+def fetch_manifest(
+    ds: CocoDataset,
+    images_dir: Path,
+    config: DataConfig,
+    client: MapillaryClient | None = None,
+    raw_dir: Path | None = None,
+) -> tuple[int, list[ImageRecord]]:
+    """Re-download the images of a manifest by Mapillary id and anonymize them.
+
+    Makes a build reproducible without hosting the images: ``images.json`` is in git, the
+    pixels come from Mapillary. Returns the number fetched and the records whose image is no
+    longer available (deleted upstream); those should be removed from the manifest.
+    """
+    client = client or MapillaryClient()
+    raw = raw_dir or (config.out / "raw")
+    images_dir.mkdir(parents=True, exist_ok=True)
+    fetched = 0
+    missing: list[ImageRecord] = []
+    for r in ds.images:
+        dst = images_dir / r.file_name
+        if dst.exists() or r.source != "mapillary":
+            continue
+        img = fetch_by_id(client, r.source_id, config.mapillary.image_size)
+        if img is None:
+            missing.append(r)
+            continue
+        src = client.download(img, raw / r.file_name)
+        anonymize(src, dst, config.anonymize.backend, config.anonymize.threshold)
+        fetched += 1
+        if fetched % 100 == 0:
+            log.info("fetch: %d images", fetched)
+    return fetched, missing

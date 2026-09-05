@@ -3,6 +3,9 @@ datasets/*
 !datasets/.gitkeep
 !datasets/README.md
 !datasets/*.dvc
+!datasets/v*/
+datasets/v*/*
+!datasets/v*/images.json
 runs/
 *.pt
 *.pth

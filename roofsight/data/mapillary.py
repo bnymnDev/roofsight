@@ -151,3 +151,17 @@ class MapillaryClient:
                     raise
                 time.sleep(1.5 * (attempt + 1))
         return dest
+
+
+def fetch_by_id(
+    client: MapillaryClient, image_id: str, size_field: str = "thumb_2048_url"
+) -> MapillaryImage | None:
+    """Look up one image by id. The download URLs expire, so a manifest stores ids, not URLs."""
+    r = client._client.get(
+        f"{API}/{image_id}",
+        params={"access_token": client.token, "fields": FIELDS},
+    )
+    if r.status_code == 404:
+        return None
+    r.raise_for_status()
+    return parse_image(r.json(), size_field)

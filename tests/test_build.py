@@ -51,3 +51,64 @@ def test_offline_build(tmp_path: Path) -> None:
     assert sorted(p.name for p in (tmp_path / "out/v-test/images").iterdir()) == [
         f"m_{i}.jpg" for i in range(5)
     ]
+
+
+def test_fetch_manifest(tmp_path: Path) -> None:
+    import httpx
+
+    from roofsight.coco import CocoDataset, CocoInfo
+    from roofsight.data.build import fetch_manifest
+    from roofsight.data.mapillary import MapillaryClient
+
+    rng = np.random.default_rng(5)
+    buf = __import__("io").BytesIO()
+    Image.fromarray(rng.integers(0, 255, size=(32, 32, 3), dtype=np.uint8)).save(buf, "JPEG")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if url.startswith("https://graph.mapillary.com/gone"):
+            return httpx.Response(404)
+        if url.startswith("https://graph.mapillary.com/"):
+            return httpx.Response(
+                200,
+                json={
+                    "id": url.split("/")[3].split("?")[0],
+                    "thumb_2048_url": "https://cdn/x.jpg",
+                    "camera_type": "perspective",
+                    "quality_score": 0.9,
+                },
+            )
+        return httpx.Response(200, content=buf.getvalue())
+
+    client = MapillaryClient(token="t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    recs = [
+        ImageRecord(
+            id=1,
+            file_name="mapillary_a.jpg",
+            width=32,
+            height=32,
+            source="mapillary",
+            license="CC-BY-SA-4.0",
+            attribution="x",
+            source_id="a",
+            split="train",
+        ),
+        ImageRecord(
+            id=2,
+            file_name="mapillary_gone.jpg",
+            width=32,
+            height=32,
+            source="mapillary",
+            license="CC-BY-SA-4.0",
+            attribution="x",
+            source_id="gone",
+            split="train",
+        ),
+    ]
+    ds = CocoDataset(info=CocoInfo(version="v", year=2026), images=recs)
+    cfg = DataConfig(version="v", out=tmp_path, anonymize=AnonymizeConfig(backend="none"))
+    n, missing = fetch_manifest(ds, tmp_path / "images", cfg, client, raw_dir=tmp_path / "raw")
+    assert n == 1 and [r.id for r in missing] == [2]
+    assert (tmp_path / "images" / "mapillary_a.jpg").exists()
+    # idempotent: nothing to fetch the second time
+    assert fetch_manifest(ds, tmp_path / "images", cfg, client, raw_dir=tmp_path / "raw")[0] == 0

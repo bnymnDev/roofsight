@@ -284,13 +284,14 @@ Training, labeling and export pull in the heavy dependencies as extras:
 
 ## Status
 
-v0.1, milestone M0: the scaffold. Everything in this README that is code is implemented and
-covered by tests: the dataset pipeline (offline and against a mocked Mapillary), the labeling
-post-processing, every metric with golden tests, the export verification gate, the leaderboard
-generator, and the geometry package on synthetic roofs. What does not exist yet: the dataset
-itself, trained weights, a leaderboard row, and the `RoofGeometryBench` app target. Those are
-milestones M1–M3 in [SPEC.md](SPEC.md); the dataset needs a Mapillary token and a SAM 3
-checkpoint, the weights need a GPU.
+v0.1, milestone M1 in progress. Everything in this README that is code is implemented and
+covered by tests: the dataset pipeline (offline, against a mocked Mapillary, and for real: the
+first build pulled 1 418 anonymized frames from twelve NRW suburbs, manifest in git), the
+labeling post-processing, every metric with golden tests, the export verification gate, the
+leaderboard generator, and the geometry package on synthetic roofs. What does not exist yet:
+reviewed labels, trained weights, a leaderboard row, and the `RoofGeometryBench` app target.
+Those are the rest of M1–M3 in [SPEC.md](SPEC.md); labeling needs a SAM 3 checkpoint and the
+weights need a GPU.
 
 Not in it, on purpose: satellite or aerial input, yield and layout, multi-view reconstruction,
 and training any foundation model.
