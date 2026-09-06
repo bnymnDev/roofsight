@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: If you use roofsight, please cite it as below.
+type: software
+title: "RoofSight: Ground-View Roof and Rooftop-Obstacle Segmentation for On-Site PV Planning"
+abstract: >-
+  A dataset of ground-level photographs of residential roofs with instance masks for roof
+  planes, rooftop obstacles, vegetation occlusion and roof edges; a benchmark with fixed
+  splits; fine-tuned RF-DETR-Seg models exported to Core ML; and a Swift package that
+  estimates pitch and azimuth per roof plane from one photo and the phone's pose.
+authors:
+  - family-names: Ulupinar
+    given-names: Bünyamin
+version: 0.1.0
+license: Apache-2.0
+repository-code: https://github.com/bnymnDev/roofsight
+keywords:
+  - photovoltaics
+  - roof segmentation
+  - instance segmentation
+  - dataset
+  - benchmark
+  - coreml

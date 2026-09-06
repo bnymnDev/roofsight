@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as documented
+title: "[bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Please fill in what you can; a minimal
+        reproduction is worth more than a long description.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Python package / CLI
+        - Dataset pipeline (data build, validate, split)
+        - Labeling (SAM 3, FiftyOne review)
+        - Training / evaluation / leaderboard
+        - Export (ONNX, Core ML, verify)
+        - RoofGeometry (Swift)
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        uv run roofsight data validate datasets/v0.1
+        ...
+      render: sh
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output or traceback
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Git commit or tag, and the output of `uv run roofsight --version` if it exists
+      placeholder: main @ 9e5d1f7
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: macOS 15 / Python 3.12 / uv 0.8 / Xcode 16
