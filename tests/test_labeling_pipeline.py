@@ -41,7 +41,9 @@ def test_prompt_config_loads() -> None:
 
 def test_label_dataset(dataset_dir: Path) -> None:
     ds = read_coco(dataset_dir / "annotations.json").model_copy(update={"annotations": []})
-    out = label_dataset(ds, dataset_dir / "images", PromptConfig.load(PROMPTS), StubSegmenter())
+    cfg = PromptConfig.load(PROMPTS)
+    cfg.categories["roof_plane"].min_area_px = 500  # 64×64 fixtures; real value is 2000
+    out = label_dataset(ds, dataset_dir / "images", cfg, StubSegmenter())
     cats = sorted({a.category_id for a in out.annotations})
     assert cats == [1, 2, 10]
     assert all(a.provenance == "auto" for a in out.annotations)

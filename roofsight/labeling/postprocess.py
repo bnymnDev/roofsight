@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 from scipy import ndimage
 
-from roofsight.categories import ROOF_EDGE_ID, ROOF_PLANE_ID
+from roofsight.categories import OBSTACLE_IDS, ROOF_EDGE_ID, ROOF_PLANE_ID, category_by_name
 from roofsight.labeling.candidates import Candidate
 from roofsight.masks import BoolMask, iou
 
@@ -57,27 +57,44 @@ def line_mask(
 
 
 def split_planes_by_edges(
-    cands: list[Candidate], edge_width_px: int = 3, min_fragment_px: int = 64
+    cands: list[Candidate],
+    edge_width_px: int = 3,
+    min_fragment_px: int = 64,
+    touch_px: int = 4,
 ) -> list[Candidate]:
-    """Cut ``roof_plane`` masks along all ``roof_edge`` masks and keep the connected pieces.
+    """Cut each ``roof_plane`` along the ``roof_edge`` lines that touch it; keep the pieces.
 
-    SAM 3 edge masks rarely reach the plane border, so each edge is extended to the straight
-    line fitted through it before cutting. A plane that is not crossed by any edge is returned
-    unchanged. Fragments smaller than ``min_fragment_px`` are dropped (edge slivers, not planes).
+    SAM 3 edge masks rarely reach the plane border, so an edge is extended to the straight line
+    fitted through it before cutting. Only edges whose mask (dilated by ``touch_px``) overlaps
+    the plane cut it; the extended line of a ridge on one house never slices the roof next
+    door. A plane not crossed by any edge is returned unchanged. Fragments smaller than
+    ``min_fragment_px`` are dropped (edge slivers, not planes).
     """
     edges = [c for c in cands if c.category_id == ROOF_EDGE_ID]
     if not edges:
         return cands
     shape = edges[0].mask.shape
-    cutter: BoolMask = np.zeros(shape, dtype=bool)
+    struct = ndimage.generate_binary_structure(2, 2)
+    edge_lines: list[tuple[BoolMask, BoolMask]] = []  # (touch zone, extended line band)
     for e in edges:
         line = fit_line(e.mask)
-        if line is not None:
-            cutter |= line_mask(line, shape, edge_width_px)
+        if line is None:
+            continue
+        touch = np.asarray(ndimage.binary_dilation(e.mask, struct, iterations=touch_px), dtype=bool)
+        edge_lines.append((touch, line_mask(line, shape, edge_width_px)))
 
     out: list[Candidate] = []
     for c in cands:
         if c.category_id != ROOF_PLANE_ID:
+            out.append(c)
+            continue
+        cutter: BoolMask = np.zeros(shape, dtype=bool)
+        touched = False
+        for touch, band in edge_lines:
+            if np.any(touch & c.mask):
+                cutter |= band
+                touched = True
+        if not touched:
             out.append(c)
             continue
         cut = c.mask & ~cutter
@@ -96,9 +113,57 @@ def split_planes_by_edges(
     return out
 
 
+ON_ROOF_IDS: frozenset[int] = OBSTACLE_IDS | {category_by_name("tree_occlusion").id}
+DEFAULT_ON_ROOF_OVERLAP: dict[int, float] = {
+    **dict.fromkeys(OBSTACLE_IDS, 0.5),
+    category_by_name("tree_occlusion").id: 0.2,
+}
+
+
+def keep_on_roof(
+    cands: list[Candidate],
+    dilate_fraction: float = 0.02,
+    min_overlap: dict[int, float] | None = None,
+) -> list[Candidate]:
+    """Drop obstacles and occlusions that do not overlap the union of roof planes.
+
+    The union is dilated by ``dilate_fraction`` of the longer image side so chimneys and
+    antennas that stick out above the ridge still count. Without roof planes in the image
+    nothing is on a roof and every such candidate is dropped.
+    """
+    thresholds = min_overlap or DEFAULT_ON_ROOF_OVERLAP
+    planes = [c for c in cands if c.category_id == ROOF_PLANE_ID]
+    others = [c for c in cands if c.category_id in ON_ROOF_IDS]
+    if not others:
+        return cands
+    if not planes:
+        return [c for c in cands if c.category_id not in ON_ROOF_IDS]
+    shape = planes[0].mask.shape
+    union: BoolMask = np.zeros(shape, dtype=bool)
+    for p in planes:
+        union |= p.mask
+    radius = max(1, round(dilate_fraction * max(shape)))
+    zone = np.asarray(ndimage.binary_dilation(union, iterations=radius), dtype=bool)
+    out: list[Candidate] = []
+    for c in cands:
+        if c.category_id not in ON_ROOF_IDS:
+            out.append(c)
+            continue
+        area = c.area
+        if area == 0:
+            continue
+        overlap = float(np.logical_and(c.mask, zone).sum()) / area
+        if overlap >= thresholds.get(c.category_id, 0.5):
+            out.append(c)
+    return out
+
+
 def postprocess(
     cands: list[Candidate],
     nms_iou: float,
     min_area_px: dict[int, int],
 ) -> list[Candidate]:
-    return split_planes_by_edges(min_area(nms(cands, nms_iou), min_area_px))
+    kept = min_area(nms(cands, nms_iou), min_area_px)
+    kept = split_planes_by_edges(kept, min_fragment_px=max(64, min_area_px.get(ROOF_PLANE_ID, 64)))
+    kept = min_area(kept, min_area_px)  # fragments must be planes, not slivers
+    return keep_on_roof(kept)
