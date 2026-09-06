@@ -73,3 +73,23 @@ ship a filter that deletes usable images, v0.1 keeps every downloaded frame and 
 decision is made in the FiftyOne review: reviewers tag frames without a usable roof, the tags
 become a scores file, and `roofsight data filter --backend file` drops them. When a GPU is
 available, `--backend sam3` does the same automatically.
+
+## Roof filter threshold 1.5 % for Mapillary frames, not the 5 % of the SPEC
+
+The SPEC's "keep if the roof mask covers ≥ 5 % of the image" was written with phone photos in
+mind: an installer stands in front of the house and the roof fills a good part of the frame.
+Mapillary frames are dashcam shots at 2048 px from the middle of the road; the same roof is
+far away and small. SAM 3 over all 1 418 frames of build 1 gave this distribution of the
+roof-mask fraction (union of all roof instances):
+
+| threshold | 0.5 % | 1 % | 1.5 % | 2 % | 3 % | 5 % |
+|---|---|---|---|---|---|---|
+| frames kept | 934 | 724 | 560 | 440 | 293 | 93 |
+
+267 frames had no roof at all. At 5 % the build would miss the 500-image target by a factor of
+five; at 1.5 % it keeps 560 with a margin for the review to drop more. Frames at 1.5–2 % show
+whole houses with clearly delineated roofs, big enough for `roof_plane` and the larger
+obstacles (chimney, dormer, existing PV), too small for vents and snow guards. Those categories
+will come mainly from the own-photo subset, where the 5 % rule applies unchanged. Per-image
+scores stay in `datasets/v0.1/roof_stats.json` so the threshold can be revisited without
+re-running SAM 3.
