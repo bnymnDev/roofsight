@@ -158,12 +158,29 @@ def keep_on_roof(
     return out
 
 
+def drop_by_position(cands: list[Candidate], max_centroid_y: dict[int, float]) -> list[Candidate]:
+    """Drop candidates whose mask centroid is below ``max_centroid_y[category]`` × height."""
+    out: list[Candidate] = []
+    for c in cands:
+        limit = max_centroid_y.get(c.category_id)
+        if limit is None:
+            out.append(c)
+            continue
+        ys = np.nonzero(c.mask)[0]
+        if len(ys) and float(ys.mean()) / c.mask.shape[0] <= limit:
+            out.append(c)
+    return out
+
+
 def postprocess(
     cands: list[Candidate],
     nms_iou: float,
     min_area_px: dict[int, int],
+    max_centroid_y: dict[int, float] | None = None,
 ) -> list[Candidate]:
     kept = min_area(nms(cands, nms_iou), min_area_px)
+    if max_centroid_y:
+        kept = drop_by_position(kept, max_centroid_y)
     kept = split_planes_by_edges(kept, min_fragment_px=max(64, min_area_px.get(ROOF_PLANE_ID, 64)))
     kept = min_area(kept, min_area_px)  # fragments must be planes, not slivers
     return keep_on_roof(kept)

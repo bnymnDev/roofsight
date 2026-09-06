@@ -76,3 +76,13 @@ def test_keep_on_roof() -> None:
     assert keep_on_roof([window_facade, tree_street]) == []
     # the full chain still works
     assert len(postprocess([plane, window_facade], 0.7, {1: 100})) == 1
+
+
+def test_drop_by_position() -> None:
+    from roofsight.labeling.postprocess import drop_by_position, postprocess
+
+    roof = Candidate(1, "house roof", 0.9, box(10, 5, 50, 20))  # centroid y ≈ 12/64
+    car = Candidate(1, "house roof", 0.9, box(10, 50, 50, 64))  # centroid y ≈ 57/64
+    assert drop_by_position([roof, car], {1: 0.75}) == [roof]
+    assert drop_by_position([roof, car], {}) == [roof, car]
+    assert postprocess([roof, car], 0.7, {1: 100}, {1: 0.75}) == [roof]

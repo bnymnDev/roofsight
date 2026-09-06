@@ -16,7 +16,7 @@ class StubSegmenter:
     def segment(self, image: np.ndarray, prompt: str) -> list[tuple[float, np.ndarray]]:
         h, w = image.shape[:2]
         m = np.zeros((h, w), dtype=bool)
-        if prompt == "roof":
+        if prompt in ("roof", "house roof"):
             m[10:60, 2:62] = True
             return [(0.9, m)]
         if "ridge" in prompt:

@@ -69,13 +69,18 @@ def label_dataset(
         category_by_name(n).id: cp.score_threshold for n, cp in prompts.categories.items()
     }
     min_area_px = {category_by_name(n).id: cp.min_area_px for n, cp in prompts.categories.items()}
+    max_centroid_y = {
+        category_by_name(n).id: cp.max_centroid_y
+        for n, cp in prompts.categories.items()
+        if cp.max_centroid_y is not None
+    }
     flat = prompts.flat()
     annotations: list[Annotation] = []
     next_id = 1
     for im in ds.images:
         image = load_image(images_root / im.file_name)
         cands = run_prompts(segmenter, image, flat, thresholds)
-        cands = postprocess(cands, prompts.nms_iou, min_area_px)
+        cands = postprocess(cands, prompts.nms_iou, min_area_px, max_centroid_y)
         anns = candidates_to_annotations(cands, im.id, next_id, edge_typer)
         next_id += len(anns)
         annotations.extend(anns)
