@@ -286,7 +286,7 @@ Training, labeling and export pull in the heavy dependencies as extras:
 
 v0.1, milestone M1 in progress. Everything in this README that is code is implemented and
 covered by tests: the dataset pipeline (offline, against a mocked Mapillary, and for real: the
-first build pulled 1 418 anonymized frames from twelve NRW suburbs, manifest in git), the
+first build pulled 1 418 anonymized frames from twelve NRW suburbs, SAM 3 kept 560 with a roof, manifest in git), the
 labeling post-processing, every metric with golden tests, the export verification gate, the
 leaderboard generator, and the geometry package on synthetic roofs. What does not exist yet:
 reviewed labels, trained weights, a leaderboard row, and the `RoofGeometryBench` app target.

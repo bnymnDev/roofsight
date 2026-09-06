@@ -30,7 +30,7 @@ dependencies = [
 [project.optional-dependencies]
 data = ["deface>=1.5"]
 train = ["torch>=2.2", "torchvision>=0.17", "rfdetr>=1.0", "supervision>=0.20"]
-label = ["fiftyone>=0.24", "supervision>=0.20"]
+label = ["fiftyone>=0.24", "supervision>=0.20", "torch>=2.2", "transformers>=4.57"]
 export = ["onnx>=1.15", "onnxruntime>=1.17", "coremltools>=8.0"]
 docs = ["mkdocs-material>=9.5"]
 all = ["roofsight[data,train,label,export,docs]"]
@@ -81,7 +81,7 @@ files = ["roofsight"]
 module = [
   "pycocotools.*", "imagehash.*", "scipy.*", "fiftyone.*", "rfdetr.*",
   "supervision.*", "onnxruntime.*", "coremltools.*", "onnx.*", "torch.*",
-  "torchvision.*", "sam3.*", "PIL.*",
+  "torchvision.*", "sam3.*", "transformers.*", "PIL.*",
 ]
 ignore_missing_imports = true
 

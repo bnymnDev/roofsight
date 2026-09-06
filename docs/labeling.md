@@ -3,10 +3,20 @@
 Auto-labels come from SAM 3 with text prompts. Humans review them in FiftyOne. Nothing from
 SAM 3 is shipped; the `sam3` package is imported only inside `roofsight/labeling/`.
 
-## Weights
+## Weights and implementations
 
-Download the SAM 3 checkpoint from Meta's release page and note its license (it is not
-Apache-2.0). Pass the path with `--checkpoint`. Weights are never committed.
+SAM 3 weights are gated: request access at [huggingface.co/facebook/sam3](https://huggingface.co/facebook/sam3)
+(Meta approves by hand), then log in with `hf auth login` or set `HF_TOKEN`. The license is not
+Apache-2.0; nothing from SAM 3 is shipped. Weights are never committed.
+
+Two implementations behind one interface, chosen by `--checkpoint`:
+
+| `--checkpoint` | Implementation | Runs on | Notes |
+|---|---|---|---|
+| `facebook/sam3` (default) or a local HF directory | `transformers` (`Sam3Model`) | CPU or CUDA | 3.4 GB safetensors, pure PyTorch; slow on CPU but works without `triton` |
+| `path/to/sam3.pt` | Meta's `sam3` package | CUDA only | imports `triton`; faster |
+
+The image is encoded once and all prompts of a category set reuse the encoding.
 
 ## Prompts
 

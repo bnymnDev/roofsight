@@ -3609,6 +3609,7 @@ all = [
     { name = "supervision" },
     { name = "torch" },
     { name = "torchvision" },
+    { name = "transformers" },
 ]
 data = [
     { name = "deface" },
@@ -3624,6 +3625,8 @@ export = [
 label = [
     { name = "fiftyone" },
     { name = "supervision" },
+    { name = "torch" },
+    { name = "transformers" },
 ]
 train = [
     { name = "rfdetr" },
@@ -3663,8 +3666,10 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.12" },
     { name = "supervision", marker = "extra == 'label'", specifier = ">=0.20" },
     { name = "supervision", marker = "extra == 'train'", specifier = ">=0.20" },
+    { name = "torch", marker = "extra == 'label'", specifier = ">=2.2" },
     { name = "torch", marker = "extra == 'train'", specifier = ">=2.2" },
     { name = "torchvision", marker = "extra == 'train'", specifier = ">=0.17" },
+    { name = "transformers", marker = "extra == 'label'", specifier = ">=4.57" },
     { name = "typer", specifier = ">=0.12" },
 ]
 provides-extras = ["data", "train", "label", "export", "docs", "all"]

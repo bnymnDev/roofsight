@@ -42,12 +42,25 @@ def file_scorer(path: Path) -> Scorer:
     return score
 
 
-def score_all(records: Iterable[ImageRecord], images_root: Path, scorer: Scorer) -> None:
-    """Fill ``roof_score`` on every record in place."""
-    for i, r in enumerate(records, start=1):
+def score_all(
+    records: Iterable[ImageRecord],
+    images_root: Path,
+    scorer: Scorer,
+    on_progress: Callable[[int], None] | None = None,
+    every: int = 25,
+) -> None:
+    """Fill ``roof_score`` on every record in place.
+
+    ``on_progress(n)`` is called every ``every`` images and at the end, so a caller can persist
+    partial scores: a SAM 3 pass over a thousand images takes hours on CPU, and only records
+    without a score are re-scored on restart."""
+    recs = list(records)
+    for i, r in enumerate(recs, start=1):
         r.roof_score = round(scorer(images_root / r.file_name), 4)
-        if i % 100 == 0:
-            log.info("roof filter: scored %d images", i)
+        if i % every == 0 or i == len(recs):
+            log.info("roof filter: scored %d/%d images", i, len(recs))
+            if on_progress is not None:
+                on_progress(i)
 
 
 def apply_filter(
