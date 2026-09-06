@@ -7,7 +7,7 @@ obstacles, vegetation occlusion and roof edges. COCO format. CC-BY-SA 4.0.
 
 | Version | Images | Regions | Status | Notes |
 |---|---|---|---|---|
-| v0.1 | 560 after roof filter (1 418 downloaded), 500 reviewed (target) | DE-NRW, 12 suburbs | built, review pending | manifest in git, test ids frozen (213); own-photo subset with ARKit pose to come |
+| v0.1 | 560 after roof filter (1 418 downloaded), auto-labeled, 500 reviewed (target) | DE-NRW, 12 suburbs | auto-labeled, review pending | manifest in git, test ids frozen (213); own-photo subset with ARKit pose to come |
 | v0.2 | 2 000 (target) | DE, NL, AT | planned | more roof styles; satellite recall study subset |
 | v1.0 | 5 000+ (target) | DE, NL, AT | planned | 100 % of train reviewed |
 
@@ -106,5 +106,10 @@ DVC pointer, or send a link in an issue.
   scored every frame with the prompt "roof"; threshold 1.5 % of the image (see
   [decisions](decisions.md#roof-filter-threshold-15-for-mapillary-frames-not-the-5-of-the-spec)),
   560 frames kept, 858 dropped; splits re-assigned with the frozen test ids preserved.
+- **v0.1 build 1, auto-labels** (2026-09-06): SAM 3 with the 35 prompts of `prompts.yaml` v0.1.1
+  over all 560 frames on CPU (79 s per frame, 12.3 h); 21 870 instances, 39 per frame, 91 % of
+  frames with at least one obstacle, 20 frames without any instance. All provenance `auto`.
+  Committed gzipped until the DVC remote exists (see decisions). Known gaps for review:
+  `snow_guard` never fires, `roof_edge` is 88 % `ridge` (the eave/verge prompts rarely win).
 - **v0.1** (planned): initial category list (ids 1–10), reviewed roof presence, SAM 3 auto-labels,
   own-photo subset.

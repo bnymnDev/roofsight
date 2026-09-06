@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Dataset v0.1 build 1 auto-labels: 21 870 SAM 3 instances over 560 frames, provenance `auto`,
+  committed gzipped as a stopgap until the DVC remote exists
 - Dataset v0.1 build 1: 1 418 anonymized Mapillary frames, 560 after the SAM 3 roof filter (1.5 %) from twelve NRW suburbs, manifest
   `datasets/v0.1/images.json` in git, `roofsight data fetch` restores the images by id
 - Mapillary client queries every bbox as a grid with retries; roof filter is a separate step
