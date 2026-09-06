@@ -14,6 +14,9 @@ class CategoryPrompts(BaseModel):
     prompts: list[str] = Field(min_length=1)
     min_area_px: int = 0
     score_threshold: float = 0.3
+    max_centroid_y: float | None = Field(default=None, ge=0.0, le=1.0)
+    """Drop instances whose mask centroid lies below this fraction of the image height.
+    Roofs are up; a "roof" found in the bottom quarter of a street photo is a car."""
 
 
 class PromptConfig(BaseModel):

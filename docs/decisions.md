@@ -93,3 +93,12 @@ obstacles (chimney, dormer, existing PV), too small for vents and snow guards. T
 will come mainly from the own-photo subset, where the 5 % rule applies unchanged. Per-image
 scores stay in `datasets/v0.1/roof_stats.json` so the threshold can be revisited without
 re-running SAM 3.
+
+## Auto-labels committed gzipped until the DVC remote exists
+
+The rule is that datasets go through DVC. The first labeling pass ran on an ephemeral machine
+without an S3/R2 remote, and 21 870 SAM 3 annotations over 560 images (13.5 MB JSON, 2–3 MB
+gzipped) are too much work to lose. So `datasets/v0.1/annotations.json.gz` is in git next to
+the manifest, as a stopgap with three properties: it is small, it is the *auto* layer only
+(provenance `auto`, unreviewed), and it moves to DVC the moment a remote is configured.
+Reviewed annotations will not be committed to git.

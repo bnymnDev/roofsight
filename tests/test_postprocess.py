@@ -44,3 +44,45 @@ def test_untouched_plane_survives() -> None:
     edge = Candidate(10, "eave line of roof", 0.8, box(4, 49, 60, 51))
     out = split_planes_by_edges([plane, edge])
     assert sum(c.category_id == 1 for c in out) == 1
+
+
+def test_edge_cuts_only_the_plane_it_touches() -> None:
+    from roofsight.labeling.postprocess import split_planes_by_edges
+
+    left = Candidate(1, "roof", 0.9, box(2, 10, 28, 50))
+    right = Candidate(1, "roof", 0.9, box(36, 10, 62, 50))
+    ridge_left = Candidate(10, "ridge line of roof", 0.8, box(4, 29, 26, 31))
+    out = split_planes_by_edges([left, right, ridge_left], edge_width_px=3, min_fragment_px=64)
+    planes = [c for c in out if c.category_id == 1]
+    assert len(planes) == 3  # left split in two, right untouched
+    assert any(np.array_equal(p.mask, right.mask) for p in planes)
+
+
+def test_keep_on_roof() -> None:
+    from roofsight.labeling.postprocess import keep_on_roof, postprocess
+
+    plane = Candidate(1, "roof", 0.9, box(10, 10, 50, 30))
+    skylight_on = Candidate(4, "roof window", 0.8, box(20, 15, 26, 20))
+    window_facade = Candidate(4, "roof window", 0.8, box(20, 45, 26, 52))
+    chimney_above = Candidate(2, "chimney", 0.8, box(40, 8, 44, 14))  # sticks out over the ridge
+    tree_street = Candidate(9, "tree", 0.7, box(0, 40, 12, 64))
+    tree_over_roof = Candidate(9, "tree", 0.7, box(5, 5, 20, 25))
+    kept = keep_on_roof(
+        [plane, skylight_on, window_facade, chimney_above, tree_street, tree_over_roof]
+    )
+    assert [c.prompt for c in kept] == ["roof", "roof window", "chimney", "tree"]
+    assert kept[3].mask[10, 10]  # the tree over the roof, not the street tree
+    # no planes → nothing is on a roof
+    assert keep_on_roof([window_facade, tree_street]) == []
+    # the full chain still works
+    assert len(postprocess([plane, window_facade], 0.7, {1: 100})) == 1
+
+
+def test_drop_by_position() -> None:
+    from roofsight.labeling.postprocess import drop_by_position, postprocess
+
+    roof = Candidate(1, "house roof", 0.9, box(10, 5, 50, 20))  # centroid y ≈ 12/64
+    car = Candidate(1, "house roof", 0.9, box(10, 50, 50, 64))  # centroid y ≈ 57/64
+    assert drop_by_position([roof, car], {1: 0.75}) == [roof]
+    assert drop_by_position([roof, car], {}) == [roof, car]
+    assert postprocess([roof, car], 0.7, {1: 100}, {1: 0.75}) == [roof]

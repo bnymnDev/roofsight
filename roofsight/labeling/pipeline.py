@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 
@@ -64,19 +65,50 @@ def label_dataset(
     prompts: PromptConfig,
     segmenter: TextSegmenter,
     edge_typer: EdgeTyper = default_edge_typer,
+    done: dict[int, list[Annotation]] | None = None,
+    on_progress: Callable[[dict[int, list[Annotation]]], None] | None = None,
+    every: int = 5,
 ) -> CocoDataset:
+    """Auto-label every image not yet in ``done``.
+
+    ``done`` maps image id → annotations from an earlier, interrupted run; ``on_progress`` is
+    called with the growing mapping every ``every`` images so the caller can persist it. A
+    SAM 3 pass over hundreds of images takes hours on CPU and must survive a restart.
+    """
     thresholds = {
         category_by_name(n).id: cp.score_threshold for n, cp in prompts.categories.items()
     }
     min_area_px = {category_by_name(n).id: cp.min_area_px for n, cp in prompts.categories.items()}
+    max_centroid_y = {
+        category_by_name(n).id: cp.max_centroid_y
+        for n, cp in prompts.categories.items()
+        if cp.max_centroid_y is not None
+    }
     flat = prompts.flat()
-    annotations: list[Annotation] = []
-    next_id = 1
-    for im in ds.images:
+    result: dict[int, list[Annotation]] = dict(done or {})
+    next_id = 1 + max((a.id for anns in result.values() for a in anns), default=0)
+    todo = [im for im in ds.images if im.id not in result]
+    for i, im in enumerate(todo, start=1):
         image = load_image(images_root / im.file_name)
         cands = run_prompts(segmenter, image, flat, thresholds)
-        cands = postprocess(cands, prompts.nms_iou, min_area_px)
+        cands = postprocess(cands, prompts.nms_iou, min_area_px, max_centroid_y)
         anns = candidates_to_annotations(cands, im.id, next_id, edge_typer)
         next_id += len(anns)
-        annotations.extend(anns)
+        result[im.id] = anns
+        if on_progress is not None and (i % every == 0 or i == len(todo)):
+            on_progress(result)
+    annotations = [a for im in ds.images for a in result.get(im.id, [])]
     return ds.model_copy(update={"annotations": annotations})
+
+
+def read_partial(path: Path) -> dict[int, list[Annotation]]:
+    """Read the ``on_progress`` dump written by :func:`write_partial`."""
+    if not path.exists():
+        return {}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return {int(k): [Annotation.model_validate(a) for a in v] for k, v in raw.items()}
+
+
+def write_partial(done: dict[int, list[Annotation]], path: Path) -> None:
+    payload = {str(k): [a.model_dump(exclude_none=True) for a in v] for k, v in done.items()}
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
