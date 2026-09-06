@@ -38,12 +38,28 @@ A prompt change bumps the prompt config version and the dataset version.
    category, masks with IoU ≥ `nms_iou` collapse to the highest-scoring one.
 2. **Minimum area.** Per category, in pixels.
 3. **Plane splitting.** SAM 3 likes to merge adjacent planes into one "roof". Every
-   `roof_edge` mask is extended to the straight line fitted through it and the plane is cut
-   along all of them; connected pieces above 64 px become separate planes. Edge masks rarely
-   reach the plane border, which is why the line is extended.
+   `roof_edge` mask is extended to the straight line fitted through it and each plane is cut
+   along the lines of the edges that touch it; pieces above the plane's minimum area become
+   separate planes. Edge masks rarely reach the plane border, which is why the line is
+   extended, and only touching edges cut so the ridge of one house never slices the roof next
+   door.
+
+4. **Position.** A category may forbid mask centroids below a fraction of the image height
+   (`max_centroid_y`). "roof" also finds car roofs and bonnets at the bottom of a street photo;
+   `roof_plane` uses 0.75.
+5. **On the roof.** Obstacles must have ≥ 50 % of their mask inside the union of roof planes
+   dilated by 2 % of the image side (chimneys stick out above the ridge); `tree_occlusion`
+   ≥ 20 %. "roof window" also finds façade windows, "tree" finds every tree on the street.
+   Without a roof plane in the image nothing is on a roof.
 
 `roof_edge` gets its `edge_type` from the prompt that found it ("ridge line of roof" →
 `ridge`).
+
+The first pass over real frames, before rules 4 and 5 and with the plane cut applied to every
+plane an extended line crossed, produced 126 instances per image; with them it is about 60,
+and what remains sits on roofs. Labeling runs at ~95 s per image on 4 CPU cores with all 35
+prompts (one image encoding, 35 cheap decodes), so `roofsight label` saves progress every
+5 images and resumes when rerun.
 
 ## Review
 

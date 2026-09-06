@@ -210,15 +210,31 @@ def label(
     ] = "facebook/sam3",
     device: Annotated[str | None, typer.Option(help="cuda | cpu; default: auto")] = None,
 ) -> None:
-    """Auto-label <in>/images.json with SAM 3 → <out>/annotations.json (provenance: auto)."""
-    from roofsight.labeling.pipeline import label_dataset
+    """Auto-label <in>/images.json with SAM 3 → <out>/annotations.json (provenance: auto).
+
+    Progress is saved every 5 images to <out>/annotations.partial.json; rerun to resume.
+    """
+    from roofsight.labeling.pipeline import label_dataset, read_partial, write_partial
     from roofsight.labeling.prompts import PromptConfig
     from roofsight.labeling.sam3 import load_segmenter
 
     ds = read_coco(in_dir / "images.json")
     cfg = PromptConfig.load(prompts)
-    labeled = label_dataset(ds, in_dir / "images", cfg, load_segmenter(checkpoint, device))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    partial = out_dir / "annotations.partial.json"
+    done = read_partial(partial)
+    if done:
+        console.print(f"resuming: {len(done)} images already labeled")
+    labeled = label_dataset(
+        ds,
+        in_dir / "images",
+        cfg,
+        load_segmenter(checkpoint, device),
+        done=done,
+        on_progress=lambda d: write_partial(d, partial),
+    )
     labeled.write(out_dir / "annotations.json")
+    partial.unlink(missing_ok=True)
     console.print(f"[green]labeled[/] {len(labeled.annotations)} instances → {out_dir}")
 
 

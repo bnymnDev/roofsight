@@ -58,3 +58,35 @@ def test_label_dataset(dataset_dir: Path) -> None:
 def test_roof_fraction() -> None:
     img = np.zeros((64, 64, 3), dtype=np.uint8)
     assert abs(roof_fraction(StubSegmenter(), img) - (50 * 60) / (64 * 64)) < 1e-9
+
+
+def test_label_dataset_resumes(dataset_dir: Path, tmp_path: Path) -> None:
+    from roofsight.labeling.pipeline import read_partial, write_partial
+
+    ds = read_coco(dataset_dir / "annotations.json").model_copy(update={"annotations": []})
+    cfg = PromptConfig.load(PROMPTS)
+    cfg.categories["roof_plane"].min_area_px = 500
+    dumps: list[int] = []
+    partial = tmp_path / "partial.json"
+    first = label_dataset(
+        ds.model_copy(update={"images": ds.images[:1]}),
+        dataset_dir / "images",
+        cfg,
+        StubSegmenter(),
+        on_progress=lambda d: (dumps.append(len(d)), write_partial(d, partial)),
+        every=1,
+    )
+    assert dumps == [1]
+    done = read_partial(partial)
+    assert list(done) == [1]
+    calls: list[int] = []
+
+    class Counting(StubSegmenter):
+        def segment_many(self, image, prompts):  # type: ignore[no-untyped-def]
+            calls.append(1)
+            return super().segment_many(image, prompts)
+
+    full = label_dataset(ds, dataset_dir / "images", cfg, Counting(), done=done)
+    assert len(calls) == 1  # only the second image was labeled
+    assert [a for a in full.annotations if a.image_id == 1] == first.annotations
+    assert len({a.id for a in full.annotations}) == len(full.annotations)
