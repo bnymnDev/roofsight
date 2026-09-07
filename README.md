@@ -7,7 +7,8 @@
 
 <p align="center">
   <a href="https://github.com/bnymnDev/roofsight/actions/workflows/ci.yml"><img src="https://github.com/bnymnDev/roofsight/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
-  <a href="https://github.com/bnymnDev/roofsight/releases/latest"><img src="https://img.shields.io/github/v/release/bnymnDev/roofsight?display_name=tag&color=0b7bd6" alt="release"></a>
+  <a href="https://github.com/bnymnDev/roofsight/actions/workflows/docs.yml"><img src="https://github.com/bnymnDev/roofsight/actions/workflows/docs.yml/badge.svg" alt="docs"></a>
+  <a href="#status"><img src="https://img.shields.io/badge/status-pre--release-orange" alt="status: pre-release"></a>
   <img src="https://img.shields.io/badge/python-3.12-3776ab?logo=python&logoColor=white" alt="python 3.12">
   <img src="https://img.shields.io/badge/swift-5.10-f05138?logo=swift&logoColor=white" alt="swift 5.10">
   <a href="LICENSE"><img src="https://img.shields.io/badge/code-Apache--2.0-blue" alt="Apache-2.0"></a>
@@ -263,6 +264,10 @@ The reasoning behind individual choices is in [docs/decisions.md](docs/decisions
 | [docs/decisions.md](docs/decisions.md) | Design decisions and the reasoning behind each |
 | [SPEC.md](SPEC.md) | The v0.1 specification: goals, non-goals, milestones, open questions |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Stack, layout, rules, commands, working style |
+| [SECURITY.md](SECURITY.md) | How to report a vulnerability |
+
+The same pages are built with MkDocs and published at
+[bnymndev.github.io/roofsight](https://bnymndev.github.io/roofsight/) by the `docs` workflow.
 
 ---
 
@@ -286,10 +291,10 @@ Training, labeling and export pull in the heavy dependencies as extras:
 
 v0.1, milestone M1 in progress. Everything in this README that is code is implemented and
 covered by tests: the dataset pipeline (offline, against a mocked Mapillary, and for real: the
-first build pulled 1 418 anonymized frames from twelve NRW suburbs, manifest in git), the
+first build pulled 1 418 anonymized frames from twelve NRW suburbs, SAM 3 kept 560 with a roof and auto-labeled them with all 35 prompts, manifest and auto-labels in git), the
 labeling post-processing, every metric with golden tests, the export verification gate, the
 leaderboard generator, and the geometry package on synthetic roofs. What does not exist yet:
-reviewed labels, trained weights, a leaderboard row, and the `RoofGeometryBench` app target.
+reviewed labels (the FiftyOne pass), trained weights, a leaderboard row, and the `RoofGeometryBench` app target.
 Those are the rest of M1–M3 in [SPEC.md](SPEC.md); labeling needs a SAM 3 checkpoint and the
 weights need a GPU.
 

@@ -161,7 +161,8 @@ def fetch_by_id(
         f"{API}/{image_id}",
         params={"access_token": client.token, "fields": FIELDS},
     )
-    if r.status_code == 404:
+    # 404: deleted upstream; 400: Mapillary answers this for ids it no longer serves
+    if r.status_code in (400, 404):
         return None
     r.raise_for_status()
     return parse_image(r.json(), size_field)

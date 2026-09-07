@@ -50,7 +50,9 @@ def data_build(
     no_roof_filter: Annotated[
         bool, typer.Option(help="Skip the SAM 3 roof presence filter.")
     ] = False,
-    sam3_checkpoint: Annotated[Path | None, typer.Option()] = None,
+    sam3_checkpoint: Annotated[
+        str, typer.Option(help="facebook/sam3, a local HF dir, or a Meta *.pt")
+    ] = "facebook/sam3",
 ) -> None:
     """Download, dedupe, anonymize, filter, split. Writes <out>/<version>/images.json."""
     import logging
@@ -63,11 +65,9 @@ def data_build(
     roof_filter = None
     if not no_roof_filter:
         from roofsight.labeling.pipeline import load_image
-        from roofsight.labeling.sam3 import Sam3Segmenter, roof_fraction
+        from roofsight.labeling.sam3 import load_segmenter, roof_fraction
 
-        if sam3_checkpoint is None:
-            raise typer.BadParameter("--sam3-checkpoint is required unless --no-roof-filter")
-        seg = Sam3Segmenter(sam3_checkpoint)
+        seg = load_segmenter(sam3_checkpoint)
         roof_filter = lambda p: roof_fraction(seg, load_image(p), cfg.roof_filter.prompt)  # noqa: E731
     ds = build(cfg, roof_filter)
     console.print(f"[green]built[/] {cfg.version}: {len(ds.images)} images")
@@ -105,7 +105,10 @@ def data_filter(
     backend: Annotated[str | None, typer.Option(help="sam3 | file; default from config")] = None,
     threshold: Annotated[float | None, typer.Option(help="Override the config threshold")] = None,
     dry_run: Annotated[bool, typer.Option(help="Score and report, delete nothing")] = False,
-    sam3_checkpoint: Path | None = None,
+    sam3_checkpoint: Annotated[
+        str, typer.Option(help="facebook/sam3, a local HF dir, or a Meta *.pt")
+    ] = "facebook/sam3",
+    device: Annotated[str | None, typer.Option(help="cuda | cpu; default: auto")] = None,
     scores: Annotated[Path | None, typer.Option(help='file backend: {"name.jpg": score}')] = None,
 ) -> None:
     """Score roof presence per image, drop images below the threshold, re-assign splits.
@@ -130,16 +133,16 @@ def data_filter(
             scorer = file_scorer(scores)
         elif be == "sam3":
             from roofsight.labeling.pipeline import load_image
-            from roofsight.labeling.sam3 import Sam3Segmenter, roof_fraction
+            from roofsight.labeling.sam3 import load_segmenter, roof_fraction
 
-            if sam3_checkpoint is None:
-                raise typer.BadParameter("--sam3-checkpoint is required for the sam3 backend")
-            seg = Sam3Segmenter(sam3_checkpoint)
+            seg = load_segmenter(sam3_checkpoint, device)
             scorer = lambda p: roof_fraction(seg, load_image(p), cfg.roof_filter.prompt)  # noqa: E731
         else:
             raise typer.BadParameter("backend must be sam3 or file")
-        score_all(unscored, dataset / "images", scorer)
-        ds.write(dataset / "images.json")  # scores persisted before any deletion
+        # scores are persisted every 25 images and before any deletion; a restart resumes
+        score_all(
+            unscored, dataset / "images", scorer, lambda _n: ds.write(dataset / "images.json")
+        )
     thr = threshold if threshold is not None else cfg.roof_filter.min_roof_fraction
     frozen: list[int] = []
     if cfg.split.frozen_test and cfg.split.frozen_test.exists():
@@ -202,18 +205,36 @@ def label(
     prompts: Annotated[Path, typer.Option("--prompts", exists=True)],
     in_dir: Annotated[Path, typer.Option("--in", exists=True, file_okay=False)],
     out_dir: Annotated[Path, typer.Option("--out")],
-    checkpoint: Annotated[Path, typer.Option("--checkpoint", exists=True)],
-    device: str = "cuda",
+    checkpoint: Annotated[
+        str, typer.Option("--checkpoint", help="facebook/sam3, a local HF dir, or a Meta *.pt")
+    ] = "facebook/sam3",
+    device: Annotated[str | None, typer.Option(help="cuda | cpu; default: auto")] = None,
 ) -> None:
-    """Auto-label <in>/images.json with SAM 3 → <out>/annotations.json (provenance: auto)."""
-    from roofsight.labeling.pipeline import label_dataset
+    """Auto-label <in>/images.json with SAM 3 → <out>/annotations.json (provenance: auto).
+
+    Progress is saved every 5 images to <out>/annotations.partial.json; rerun to resume.
+    """
+    from roofsight.labeling.pipeline import label_dataset, read_partial, write_partial
     from roofsight.labeling.prompts import PromptConfig
-    from roofsight.labeling.sam3 import Sam3Segmenter
+    from roofsight.labeling.sam3 import load_segmenter
 
     ds = read_coco(in_dir / "images.json")
     cfg = PromptConfig.load(prompts)
-    labeled = label_dataset(ds, in_dir / "images", cfg, Sam3Segmenter(checkpoint, device))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    partial = out_dir / "annotations.partial.json"
+    done = read_partial(partial)
+    if done:
+        console.print(f"resuming: {len(done)} images already labeled")
+    labeled = label_dataset(
+        ds,
+        in_dir / "images",
+        cfg,
+        load_segmenter(checkpoint, device),
+        done=done,
+        on_progress=lambda d: write_partial(d, partial),
+    )
     labeled.write(out_dir / "annotations.json")
+    partial.unlink(missing_ok=True)
     console.print(f"[green]labeled[/] {len(labeled.annotations)} instances → {out_dir}")
 
 

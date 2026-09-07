@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose a change to the dataset, benchmark, models or geometry package
+title: "[feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [SPEC.md](https://github.com/bnymnDev/roofsight/blob/main/SPEC.md) first: the
+        non-goals there (satellite input, yield and layout, multi-view reconstruction) are out
+        of scope for v0.1.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Dataset (categories, sources, pipeline)
+        - Benchmark / metrics
+        - Models / training / export
+        - RoofGeometry (Swift)
+        - CLI
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can you not do today, and who does it affect (installer, app developer, researcher)?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should change? If it touches categories or prompts, remember that ids are stable and a dataset version bump is required.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

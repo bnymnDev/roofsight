@@ -1,13 +1,15 @@
 # SAM 3 text prompts per category. Several synonyms each; NMS across synonyms afterwards.
 # Category names must match roofsight/categories.py exactly. Ids are never written here.
-version: v0.1
+version: v0.1.1
 nms_iou: 0.7
 
 categories:
   roof_plane:
-    prompts: ["roof", "roof surface", "sloped roof plane", "flat roof"]
+    # not plain "roof": it also finds car roofs, bonnets and awnings
+    prompts: ["house roof", "roof of a building", "sloped roof plane", "flat roof of a building"]
     min_area_px: 2000
     score_threshold: 0.35
+    max_centroid_y: 0.75     # a "roof" whose centroid is in the bottom quarter is a car
   chimney:
     prompts: ["chimney", "brick chimney stack", "chimney pipe on roof"]
     min_area_px: 60

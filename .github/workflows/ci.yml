@@ -9,8 +9,8 @@ jobs:
   python:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - run: uv python install 3.12
@@ -27,7 +27,7 @@ jobs:
   swift:
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: swift --version
       - run: swift test
         working-directory: swift/RoofGeometry
@@ -35,8 +35,8 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v3
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
       - run: uv python install 3.12
       - run: uv sync --extra docs
       - run: uv run mkdocs build --strict
