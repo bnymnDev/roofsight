@@ -77,10 +77,15 @@ def data_build(
 def data_fetch(
     dataset: Annotated[Path, typer.Argument(help="Dataset directory with images.json")],
     config: Annotated[Path, typer.Option("--config", exists=True, dir_okay=False)],
+    prune_missing: Annotated[
+        bool, typer.Option(help="Remove images Mapillary no longer serves from the manifest")
+    ] = False,
 ) -> None:
     """Re-download the images listed in images.json by Mapillary id, then anonymize them.
 
-    images.json is the manifest in git; this restores the pixels on any machine.
+    images.json is the manifest in git; this restores the pixels on any machine. Images that
+    are gone upstream are reported; they are removed from the manifest only with
+    --prune-missing.
     """
     import logging
 
@@ -88,14 +93,31 @@ def data_fetch(
     from roofsight.data.config import DataConfig
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    from roofsight.data.mapillary import MapillaryAuthError
+
     ds = read_coco(dataset / "images.json")
-    n, missing = fetch_manifest(ds, dataset / "images", DataConfig.load(config))
+    try:
+        n, missing = fetch_manifest(ds, dataset / "images", DataConfig.load(config))
+    except MapillaryAuthError as e:
+        err.print(f"[red]{e}[/]")
+        raise typer.Exit(2) from e
     if missing:
-        ids = {r.id for r in missing}
-        ds = ds.model_copy(update={"images": [r for r in ds.images if r.id not in ids]})
-        ds.write(dataset / "images.json")
-        err.print(f"[yellow]{len(missing)} images no longer on Mapillary; removed from manifest[/]")
-    console.print(f"[green]fetched {n}[/] → {dataset / 'images'}")
+        names = ", ".join(r.file_name for r in missing[:5])
+        more = f" and {len(missing) - 5} more" if len(missing) > 5 else ""
+        if prune_missing:
+            ids = {r.id for r in missing}
+            ds = ds.model_copy(update={"images": [r for r in ds.images if r.id not in ids]})
+            ds.write(dataset / "images.json")
+            err.print(f"[yellow]{len(missing)} images gone upstream, removed: {names}{more}[/]")
+        else:
+            err.print(
+                f"[yellow]{len(missing)} images gone upstream, kept in the manifest: "
+                f"{names}{more}. Rerun with --prune-missing to drop them.[/]"
+            )
+    present = sum((dataset / "images" / r.file_name).exists() for r in ds.images)
+    console.print(
+        f"[green]fetched {n}[/]; {present}/{len(ds.images)} images present in {dataset / 'images'}"
+    )
 
 
 @data_app.command("filter")
