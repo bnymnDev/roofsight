@@ -55,7 +55,7 @@ def export_to_fiftyone(ds: CocoDataset, images_root: Path, name: str) -> Any:  #
         data_path=str(images_root),
         labels_path=str(tmp),
         label_types=["segmentations"],
-        extra_attrs=["provenance", "edge_type", "score"],
+        extra_attrs=["provenance", "edge_type"],  # score is a native COCO field in FiftyOne
         name=name,
         overwrite=True,
     )

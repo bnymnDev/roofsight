@@ -65,7 +65,7 @@ prompts (one image encoding, 35 cheap decodes), so `roofsight label` saves progr
 
 ```sh
 uv run roofsight review datasets/v0.1 export
-fiftyone app launch
+uv run fiftyone app launch          # http://localhost:5151; on Windows set PYTHONUTF8=1 first
 # accept / edit / delete, then:
 uv run roofsight review datasets/v0.1 import
 uv run roofsight review datasets/v0.1 stats

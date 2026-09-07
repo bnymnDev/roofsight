@@ -190,12 +190,17 @@ def fetch_manifest(
         dst = images_dir / r.file_name
         if dst.exists() or r.source != "mapillary":
             continue
-        img = fetch_by_id(client, r.source_id, config.mapillary.image_size)
-        if img is None:
-            missing.append(r)
+        try:
+            img = fetch_by_id(client, r.source_id, config.mapillary.image_size)
+            if img is None:
+                missing.append(r)
+                continue
+            src = client.download(img, raw / r.file_name)
+            anonymize(src, dst, config.anonymize.backend, config.anonymize.threshold)
+        except Exception as e:
+            log.warning("fetch: skipping %s (%s)", r.file_name, e)
+            dst.unlink(missing_ok=True)
             continue
-        src = client.download(img, raw / r.file_name)
-        anonymize(src, dst, config.anonymize.backend, config.anonymize.threshold)
         fetched += 1
         if fetched % 100 == 0:
             log.info("fetch: %d images", fetched)

@@ -68,6 +68,8 @@ def test_fetch_manifest(tmp_path: Path) -> None:
         url = str(request.url)
         if url.startswith("https://graph.mapillary.com/gone"):
             return httpx.Response(404)
+        if url.startswith("https://graph.mapillary.com/broken"):
+            return httpx.Response(500)
         if url.startswith("https://graph.mapillary.com/"):
             return httpx.Response(
                 200,
@@ -108,7 +110,7 @@ def test_fetch_manifest(tmp_path: Path) -> None:
     ds = CocoDataset(info=CocoInfo(version="v", year=2026), images=recs)
     cfg = DataConfig(version="v", out=tmp_path, anonymize=AnonymizeConfig(backend="none"))
     n, missing = fetch_manifest(ds, tmp_path / "images", cfg, client, raw_dir=tmp_path / "raw")
-    assert n == 1 and [r.id for r in missing] == [2]
+    assert n == 1 and [r.id for r in missing] == [2]  # the 500 is skipped, not fatal
     assert (tmp_path / "images" / "mapillary_a.jpg").exists()
     # idempotent: nothing to fetch the second time
     assert fetch_manifest(ds, tmp_path / "images", cfg, client, raw_dir=tmp_path / "raw")[0] == 0

@@ -87,3 +87,13 @@ def test_search_grid_retries_and_skips(monkeypatch) -> None:  # type: ignore[no-
     ids = [i.id for i in client.search("0,0,1,1", limit=10, grid=2)]
     assert len(ids) == 3
     assert calls.count("0.000000,0.000000,0.500000,0.500000") == 4  # 1 try + 3 retries
+
+
+def test_fetch_by_id_treats_400_as_missing() -> None:
+    from roofsight.data.mapillary import fetch_by_id
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, json={"error": {"message": "Unsupported get request"}})
+
+    client = MapillaryClient(token="t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    assert fetch_by_id(client, "1084525927353093") is None
