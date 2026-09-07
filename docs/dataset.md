@@ -78,7 +78,10 @@ the pixels:
 uv run roofsight data fetch datasets/v0.1 --config configs/data/v0.1.yaml   # re-download by id + anonymize
 ```
 
-Images that Mapillary has since removed are dropped from the manifest and reported.
+The token is checked before the first download; a bad token (a trailing `.` from a paste is
+the usual culprit) aborts with exit code 2 and never looks like missing images. Images that
+Mapillary has since removed are reported and kept in the manifest; `--prune-missing` drops
+them.
 Annotations and weights go through DVC (S3/R2 remote, to be set up); `dvc pull` fetches them.
 
 ## Contributing images

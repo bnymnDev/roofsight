@@ -16,3 +16,15 @@ def test_merge_provenance() -> None:
     assert prov[1] == "auto"
     assert 6 not in prov
     assert review_stats(merged) == {"auto": 5, "auto_edited": 1, "manual": 1}
+
+
+def test_present_only(dataset_dir) -> None:  # type: ignore[no-untyped-def]
+    from roofsight.coco import read_coco
+    from roofsight.labeling.review import present_only
+
+    ds = read_coco(dataset_dir / "annotations.json")
+    (dataset_dir / "images" / "img_002.jpg").unlink()
+    kept, missing = present_only(ds, dataset_dir / "images")
+    assert missing == ["img_002.jpg"]
+    assert [im.id for im in kept.images] == [1]
+    assert all(a.image_id == 1 for a in kept.annotations)

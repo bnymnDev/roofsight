@@ -45,9 +45,34 @@ def review_stats(ds: CocoDataset) -> dict[str, int]:
     return counts
 
 
+def present_only(ds: CocoDataset, images_root: Path) -> tuple[CocoDataset, list[str]]:
+    """Drop records whose image file is not on disk; FiftyOne aborts on the first missing file."""
+    missing = [im.file_name for im in ds.images if not (images_root / im.file_name).exists()]
+    if not missing:
+        return ds, []
+    gone = set(missing)
+    kept = [im for im in ds.images if im.file_name not in gone]
+    ids = {im.id for im in kept}
+    return (
+        ds.model_copy(
+            update={"images": kept, "annotations": [a for a in ds.annotations if a.image_id in ids]}
+        ),
+        missing,
+    )
+
+
 def export_to_fiftyone(ds: CocoDataset, images_root: Path, name: str) -> Any:  # pragma: no cover
+    import logging
+
     import fiftyone as fo
 
+    ds, missing = present_only(ds, images_root)
+    if missing:
+        logging.getLogger(__name__).warning(
+            "review: %d images missing on disk, exporting %d (run `roofsight data fetch`)",
+            len(missing),
+            len(ds.images),
+        )
     tmp = images_root.parent / f"{name}.fiftyone.json"
     ds.write(tmp)
     dataset = fo.Dataset.from_dir(

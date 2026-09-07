@@ -182,6 +182,7 @@ def fetch_manifest(
     longer available (deleted upstream); those should be removed from the manifest.
     """
     client = client or MapillaryClient()
+    client.check_token()  # a bad token must fail here, never look like 560 deleted images
     raw = raw_dir or (config.out / "raw")
     images_dir.mkdir(parents=True, exist_ok=True)
     fetched = 0

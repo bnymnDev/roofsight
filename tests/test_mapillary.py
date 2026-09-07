@@ -50,7 +50,9 @@ def test_search_paginates() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json=pages[str(request.url).split("?")[0]])
 
-    client = MapillaryClient(token="t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    client = MapillaryClient(
+        token="MLY|1|a", client=httpx.Client(transport=httpx.MockTransport(handler))
+    )
     ids = [i.id for i in client.search("0,0,1,1", limit=10)]
     assert ids == ["1"]
 
@@ -83,7 +85,9 @@ def test_search_grid_retries_and_skips(monkeypatch) -> None:  # type: ignore[no-
         }
         return httpx.Response(200, json={"data": [item, item]})  # duplicate ids inside a cell
 
-    client = MapillaryClient(token="t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    client = MapillaryClient(
+        token="MLY|1|a", client=httpx.Client(transport=httpx.MockTransport(handler))
+    )
     ids = [i.id for i in client.search("0,0,1,1", limit=10, grid=2)]
     assert len(ids) == 3
     assert calls.count("0.000000,0.000000,0.500000,0.500000") == 4  # 1 try + 3 retries
@@ -95,5 +99,36 @@ def test_fetch_by_id_treats_400_as_missing() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(400, json={"error": {"message": "Unsupported get request"}})
 
-    client = MapillaryClient(token="t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    client = MapillaryClient(
+        token="MLY|1|a", client=httpx.Client(transport=httpx.MockTransport(handler))
+    )
     assert fetch_by_id(client, "1084525927353093") is None
+
+
+def test_bad_token_is_an_auth_error_not_a_missing_image() -> None:
+    import pytest
+
+    from roofsight.data.mapillary import MapillaryAuthError, fetch_by_id
+
+    with pytest.raises(MapillaryAuthError, match="trailing"):
+        MapillaryClient(token="MLY|123|abcdef.")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            400,
+            json={
+                "error": {
+                    "message": "Invalid OAuth access token.",
+                    "type": "OAuthException",
+                    "code": 190,
+                }
+            },
+        )
+
+    client = MapillaryClient(
+        token="MLY|123|abcdef", client=httpx.Client(transport=httpx.MockTransport(handler))
+    )
+    with pytest.raises(MapillaryAuthError, match="rejected"):
+        client.check_token()
+    with pytest.raises(MapillaryAuthError):
+        fetch_by_id(client, "1")

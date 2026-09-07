@@ -66,6 +66,8 @@ def test_fetch_manifest(tmp_path: Path) -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         url = str(request.url)
+        if url.startswith("https://graph.mapillary.com/images"):
+            return httpx.Response(200, json={"data": []})  # token check
         if url.startswith("https://graph.mapillary.com/gone"):
             return httpx.Response(404)
         if url.startswith("https://graph.mapillary.com/broken"):
@@ -82,7 +84,9 @@ def test_fetch_manifest(tmp_path: Path) -> None:
             )
         return httpx.Response(200, content=buf.getvalue())
 
-    client = MapillaryClient(token="t", client=httpx.Client(transport=httpx.MockTransport(handler)))
+    client = MapillaryClient(
+        token="MLY|1|a", client=httpx.Client(transport=httpx.MockTransport(handler))
+    )
     recs = [
         ImageRecord(
             id=1,

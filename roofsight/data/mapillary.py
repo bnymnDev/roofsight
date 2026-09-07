@@ -55,6 +55,27 @@ def parse_image(item: dict[str, Any], size_field: str = "thumb_2048_url") -> Map
     )
 
 
+def _error_message(r: httpx.Response) -> str:
+    try:
+        err = r.json().get("error", {})
+        return str(err.get("message") or err)
+    except ValueError:
+        return r.text[:200]
+
+
+def _is_auth_error(r: httpx.Response) -> bool:
+    """Mapillary answers a bad token with 400 and an OAuthException body, not with 401."""
+    try:
+        err = r.json().get("error", {})
+    except ValueError:
+        return r.status_code in (401, 403)
+    return (
+        "OAuth" in str(err.get("type", ""))
+        or err.get("code") == 190
+        or (r.status_code in (401, 403))
+    )
+
+
 def grid_cells(bbox: str, n: int) -> list[str]:
     """Split ``west,south,east,north`` into an ``n × n`` grid of sub-boxes.
 
@@ -79,12 +100,36 @@ def keep(img: MapillaryImage, camera_type: str, min_quality: float) -> bool:
     return img.quality_score >= min_quality
 
 
+class MapillaryAuthError(RuntimeError):
+    """The token was rejected. Nothing downstream may treat this as a missing image."""
+
+
 class MapillaryClient:
     def __init__(self, token: str | None = None, client: httpx.Client | None = None) -> None:
-        self.token = token or os.environ.get("MAPILLARY_TOKEN", "")
+        self.token = (token or os.environ.get("MAPILLARY_TOKEN", "")).strip()
         if not self.token:
             raise RuntimeError("MAPILLARY_TOKEN is not set")
+        if not self.token.startswith("MLY|") or not self.token.split("|")[-1].isalnum():
+            raise MapillaryAuthError(
+                "MAPILLARY_TOKEN looks wrong: it must be 'MLY|<app id>|<hex>' with nothing "
+                "before or after (a trailing '.' or quote is a common paste error)"
+            )
         self._client = client or httpx.Client(timeout=60)
+
+    def check_token(self) -> None:
+        """One cheap request; raises :class:`MapillaryAuthError` if the token is rejected."""
+        r = self._client.get(
+            f"{API}/images",
+            params={
+                "access_token": self.token,
+                "fields": "id",
+                "bbox": "6.9,50.9,6.901,50.901",
+                "limit": 1,
+            },
+        )
+        if r.status_code in (400, 401, 403) and _is_auth_error(r):
+            raise MapillaryAuthError(f"Mapillary rejected the token: {_error_message(r)}")
+        r.raise_for_status()
 
     def _get_cell(self, bbox: str, limit: int, retries: int = 3) -> list[dict[str, Any]]:
         """One bbox query. On 5xx: back off, halve the limit, retry; give up after ``retries``."""
@@ -161,7 +206,9 @@ def fetch_by_id(
         f"{API}/{image_id}",
         params={"access_token": client.token, "fields": FIELDS},
     )
-    # 404: deleted upstream; 400: Mapillary answers this for ids it no longer serves
+    if r.status_code in (400, 401, 403) and _is_auth_error(r):
+        raise MapillaryAuthError(f"Mapillary rejected the token: {_error_message(r)}")
+    # 404: deleted upstream; 400 without an OAuth error: an id Mapillary no longer serves
     if r.status_code in (400, 404):
         return None
     r.raise_for_status()
