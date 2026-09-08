@@ -13,6 +13,7 @@ import pytest
 from roofsight.data.commons import (
     CommonsClient,
     CommonsImage,
+    CommonsThrottledError,
     collect,
     normalize_license,
     plain_text,
@@ -170,3 +171,49 @@ def test_download_is_idempotent(tmp_path: Path) -> None:
     assert c.download(img, dest).read_bytes() == b"\xff\xd8jpegbytes"
     assert c.download(img, dest) == dest  # no second request queued, so this would raise
     assert not list(tmp_path.glob("*.part"))
+
+
+def _throttle(retry_after: str = "600") -> urllib.error.HTTPError:
+    return urllib.error.HTTPError("u", 429, "slow down", {"Retry-After": retry_after}, None)  # type: ignore[arg-type]
+
+
+def test_gives_up_when_the_network_is_throttled(monkeypatch: Any) -> None:
+    import roofsight.data.commons as m
+
+    monkeypatch.setattr(m.time, "sleep", lambda s: None)
+    c = CommonsClient(
+        min_interval=0.0,
+        retries=10,
+        throttle_giveup=3,
+        opener=FakeOpener([_throttle(), _throttle(), _throttle()]),
+    )
+    with pytest.raises(CommonsThrottledError, match="rate limited"):
+        list(c.search("q", 1))
+
+
+def test_a_success_resets_the_throttle_counter(monkeypatch: Any) -> None:
+    import roofsight.data.commons as m
+
+    monkeypatch.setattr(m.time, "sleep", lambda s: None)
+    ok = {"query": {"search": [{"title": "File:A.jpg"}]}}
+    c = CommonsClient(
+        min_interval=0.0,
+        retries=10,
+        throttle_giveup=3,
+        opener=FakeOpener([_throttle(), ok, _throttle(), _throttle(), ok]),
+    )
+    assert list(c.search("q", 1)) == ["File:A.jpg"]
+    assert list(c.search("q", 1)) == ["File:A.jpg"]
+
+
+def test_retry_wait_is_capped(monkeypatch: Any) -> None:
+    import roofsight.data.commons as m
+
+    waits: list[float] = []
+    monkeypatch.setattr(m.time, "sleep", lambda s: waits.append(s))
+    ok = {"query": {"search": [{"title": "File:A.jpg"}]}}
+    c = CommonsClient(
+        min_interval=0.0, max_retry_wait=30.0, opener=FakeOpener([_throttle("600"), ok])
+    )
+    list(c.search("q", 1))
+    assert waits == [30.0]  # not the 600 s the server asked for

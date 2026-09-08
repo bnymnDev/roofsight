@@ -102,3 +102,30 @@ gzipped) are too much work to lose. So `datasets/v0.1/annotations.json.gz` is in
 the manifest, as a stopgap with three properties: it is small, it is the *auto* layer only
 (provenance `auto`, unreviewed), and it moves to DVC the moment a remote is configured.
 Reviewed annotations will not be committed to git.
+
+## Where the images come from, and why none of it is easy
+
+Mapillary was the SPEC's primary source. Once 560 frames were on disk it was clear that the
+perspective is wrong for the task, not merely noisy: the camera sits in a car in the middle of
+the road, the house is twenty metres away behind a hedge and parked cars, and the roof occupies
+a few percent of a wide frame. Ranking all 560 by roof area and looking at the best two dozen
+shows mostly road. The yield is roughly one usable frame in six, and downloading ten times more
+produces ten times more of the same geometry.
+
+Wikimedia Commons was added as a second source. It has exactly the framing a PV planner sees —
+the whole building, from the pavement, roof large in frame, 3000 px — under CC-BY-SA, and there
+are 21 920 files for North Rhine-Westphalia alone. Its bias is the mirror image of Mapillary's:
+people photograph and upload what is listed or otherwise notable, so the stock is Gründerzeit
+villas, half-timbered houses and town centres rather than the 1975 house next door. Searches
+aimed at ordinary housing (`Einfamilienhaus`, `Satteldach`, `Neubaugebiet`) return villas,
+historic centres and construction sites. Deep categories without a region in their name wander
+worldwide. Commons therefore buys roof and obstacle variety, not typical PV candidates.
+
+The imagery that matches the task exactly — an estate agent's photo of a house for sale — is
+copyrighted and cannot enter a CC-BY-SA dataset, whatever its quality.
+
+What remains is the own-photo subset: someone on the pavement, phone at chest height, ten
+metres from the house. It is the only source that supplies the right framing, the full rights
+and the ARKit pose the geometry half of the project needs. The SPEC treats it as a fallback for
+thin Mapillary coverage; on this evidence it is the primary source, and Mapillary and Commons
+are the supplements.

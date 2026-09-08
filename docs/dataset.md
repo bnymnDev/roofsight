@@ -64,9 +64,14 @@ Sizes: 21 920 files under "Houses in North Rhine-Westphalia", 17 018 Lower Saxon
 Netherlands, 35 543 Austria. Commons has no snow-guard category, so `snow_guard` stays
 unrepresented until own photos cover it.
 
-Wikimedia rejects some HTTP clients by TLS fingerprint with a 403 and their robot-policy
-notice; `httpx` is among them, so the Commons client uses the standard library's `urllib`,
-paces itself at one request per second and honours `Retry-After`.
+Two things about talking to Wikimedia. They reject some HTTP clients by TLS fingerprint with a
+403 and their robot-policy notice; `httpx` is among them, so the Commons client uses the
+standard library's `urllib`. And their media hosts throttle by client address: a data-centre
+address gets 429 with a ten-minute `Retry-After` even at one request every three seconds,
+while an ordinary connection pulls thousands of files without one. **Run the Commons
+collection from the machine you work on, not from a server.** The client caps the wait it
+honours and raises `CommonsThrottledError` after four throttled requests in a row rather than
+crawling for days.
 
 ## Pipeline
 
