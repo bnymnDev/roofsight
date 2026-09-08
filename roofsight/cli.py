@@ -262,29 +262,58 @@ def label(
 
 @app.command("review")
 def review(
-    dataset: Path,
+    dataset: Annotated[Path, typer.Argument(help="Dataset directory with annotations.json")],
     action: Annotated[str, typer.Argument(help="export | import | stats")],
-    name: str = "roofsight-review",
+    name: Annotated[str, typer.Option(help="FiftyOne dataset name")] = "roofsight-review",
+    split: Annotated[
+        str | None, typer.Option("--split", help="Review one split only, e.g. test")
+    ] = None,
+    min_score: Annotated[
+        float | None, typer.Option(help="Export only instances at or above this score")
+    ] = None,
 ) -> None:
-    """FiftyOne round trip. export → open the app; import → merge edits back with provenance."""
+    """FiftyOne round trip. export → open the app; import → merge edits back with provenance.
+
+    An export narrowed by --split or --min-score records its scope; import replaces exactly
+    that scope and leaves the rest of the dataset untouched.
+    """
+    import logging
+
     from roofsight.labeling.review import (
+        SCOPE_SUFFIX,
+        ReviewScope,
         export_to_fiftyone,
         import_from_fiftyone,
-        merge_provenance,
+        merge_reviewed,
         review_stats,
     )
 
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    annotations = dataset / "annotations.json"
+    scope_path = dataset / f"{name}{SCOPE_SUFFIX}"
+
     if action == "export":
-        export_to_fiftyone(read_coco(dataset / "annotations.json"), dataset / "images", name)
-        console.print(f"exported as FiftyOne dataset [bold]{name}[/]; run `fiftyone app launch`")
+        s = _split(split) if split is not None else None
+        _, scope, missing = export_to_fiftyone(
+            read_coco(annotations), dataset / "images", name, s, min_score
+        )
+        if missing:
+            err.print(f"[yellow]{len(missing)} images missing on disk, skipped[/]")
+        console.print(
+            f"[green]exported[/] {len(scope.image_ids)} images, "
+            f"{len(scope.annotation_ids)} instances as [bold]{name}[/]; "
+            f"run `uv run fiftyone app launch {name}`"
+        )
     elif action == "import":
-        auto = read_coco(dataset / "annotations.json")
+        auto = read_coco(annotations)
+        saved = ReviewScope.read(scope_path) if scope_path.exists() else None
         edited = read_coco(import_from_fiftyone(name, dataset / "reviewed.raw.json"))
-        merged = merge_provenance(auto, edited)
-        merged.write(dataset / "annotations.json")
+        merged = merge_reviewed(auto, edited, saved)
+        merged.write(annotations)
         console.print(review_stats(merged))
+        console.print(f"[green]merged[/] into {annotations}")
     elif action == "stats":
-        console.print(review_stats(read_coco(dataset / "annotations.json")))
+        console.print(review_stats(read_coco(annotations)))
     else:
         raise typer.BadParameter("action must be export, import or stats")
 
