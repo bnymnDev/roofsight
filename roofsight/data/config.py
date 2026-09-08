@@ -33,6 +33,18 @@ class MapillarySource(BaseModel):
     image_size: str = "thumb_2048_url"
 
 
+class CommonsSource(BaseModel):
+    """Wikimedia Commons. ``queries`` are CirrusSearch strings (``deepcat:"…"`` works)."""
+
+    enabled: bool = False
+    queries: list[str] = Field(default_factory=list)
+    categories: list[str] = Field(default_factory=list)
+    per_source_limit: int = 500
+    thumb_width: int = 1280
+    min_interval_s: float = 1.0
+    region: str = "DE"
+
+
 class OwnPhotoSource(BaseModel):
     enabled: bool = True
     root: Path = Path("datasets/own")
@@ -73,6 +85,7 @@ class DataConfig(BaseModel):
     target_images: int = 500
     min_obstacle_fraction: float = 0.3
     mapillary: MapillarySource = Field(default_factory=MapillarySource)
+    commons: CommonsSource = Field(default_factory=CommonsSource)
     own: OwnPhotoSource = Field(default_factory=OwnPhotoSource)
     dedupe: DedupeConfig = Field(default_factory=DedupeConfig)
     anonymize: AnonymizeConfig = Field(default_factory=AnonymizeConfig)

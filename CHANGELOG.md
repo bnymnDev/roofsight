@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Wikimedia Commons as a second image source: paced client with license normalisation and
+  per-image attribution, wired into `data build` and `data fetch`; `configs/data/v0.2.yaml`
+- Review round trip can be scoped to a split and a minimum score without losing the rest
 - Dataset v0.1 build 1 auto-labels: 21 870 SAM 3 instances over 560 frames, provenance `auto`,
   committed gzipped as a stopgap until the DVC remote exists
 - Dataset v0.1 build 1: 1 418 anonymized Mapillary frames, 560 after the SAM 3 roof filter (1.5 %) from twelve NRW suburbs, manifest

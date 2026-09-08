@@ -17,6 +17,7 @@ from PIL import Image
 from roofsight.categories import coco_categories
 from roofsight.coco import CocoDataset, CocoInfo, CocoLicense, ImageRecord
 from roofsight.data.anonymize import anonymize
+from roofsight.data.commons import CommonsClient, collect
 from roofsight.data.config import DataConfig
 from roofsight.data.dedupe import dedupe, phash
 from roofsight.data.mapillary import LICENSE as MAPILLARY_LICENSE
@@ -36,6 +37,42 @@ CC_BY_SA = CocoLicense(
 def _image_size(path: Path) -> tuple[int, int]:
     with Image.open(path) as im:
         return im.size
+
+
+def download_commons(
+    config: DataConfig, raw_dir: Path, client: CommonsClient | None = None
+) -> list[ImageRecord]:
+    """Search Commons, download thumbnails, and turn them into image records."""
+    cfg = config.commons
+    if not cfg.enabled or not (cfg.queries or cfg.categories):
+        return []
+    client = client or CommonsClient(min_interval=cfg.min_interval_s)
+    images = collect(client, cfg.queries, cfg.categories, cfg.per_source_limit, cfg.thumb_width)
+    records: list[ImageRecord] = []
+    for img in images:
+        dest = raw_dir / f"{img.file_name}.jpg"
+        try:
+            client.download(img, dest)
+            w, h = _image_size(dest)
+        except Exception as e:
+            log.warning("commons: skipping %s (%s)", img.title, e)
+            dest.unlink(missing_ok=True)
+            continue
+        records.append(
+            ImageRecord(
+                id=0,
+                file_name=dest.name,
+                width=w,
+                height=h,
+                source="commons",
+                license=img.license,
+                attribution=img.attribution,
+                region=cfg.region,
+                source_id=img.title,
+            )
+        )
+    log.info("commons: %d images downloaded", len(records))
+    return records
 
 
 def collect_own_photos(config: DataConfig) -> list[ImageRecord]:
@@ -117,7 +154,11 @@ def build(
     images_dir.mkdir(parents=True, exist_ok=True)
 
     if records is None:
-        records = download_mapillary(config, raw) + collect_own_photos(config)
+        records = (
+            download_mapillary(config, raw)
+            + download_commons(config, raw)
+            + collect_own_photos(config)
+        )
         own_root = config.own.root
     else:
         own_root = raw
@@ -178,8 +219,8 @@ def fetch_manifest(
     """Re-download the images of a manifest by Mapillary id and anonymize them.
 
     Makes a build reproducible without hosting the images: ``images.json`` is in git, the
-    pixels come from Mapillary. Returns the number fetched and the records whose image is no
-    longer available (deleted upstream); those should be removed from the manifest.
+    pixels come from Mapillary and Wikimedia Commons. Returns the number fetched and the
+    records whose image is no longer available upstream.
     """
     client = client or MapillaryClient()
     client.check_token()  # a bad token must fail here, never look like 560 deleted images
@@ -187,9 +228,24 @@ def fetch_manifest(
     images_dir.mkdir(parents=True, exist_ok=True)
     fetched = 0
     missing: list[ImageRecord] = []
+    commons: CommonsClient | None = None
     for r in ds.images:
         dst = images_dir / r.file_name
-        if dst.exists() or r.source != "mapillary":
+        if dst.exists() or r.source not in ("mapillary", "commons"):
+            continue
+        if r.source == "commons":
+            commons = commons or CommonsClient(min_interval=config.commons.min_interval_s)
+            try:
+                info = commons.image_info([r.source_id], config.commons.thumb_width)
+                if not info:
+                    missing.append(r)
+                    continue
+                src = commons.download(info[0], raw / r.file_name)
+                anonymize(src, dst, config.anonymize.backend, config.anonymize.threshold)
+                fetched += 1
+            except Exception as e:
+                log.warning("fetch: skipping %s (%s)", r.file_name, e)
+                dst.unlink(missing_ok=True)
             continue
         try:
             img = fetch_by_id(client, r.source_id, config.mapillary.image_size)

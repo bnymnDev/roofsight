@@ -1,0 +1,87 @@
+# RoofSight dataset v0.2: v0.1's Mapillary frames plus Wikimedia Commons.
+#
+# Commons contributes what the Mapillary dashcam frames lack: whole buildings, shot from the
+# pavement, roof large in frame, at 1280 px. Its bias is that people upload notable and listed
+# buildings, so it brings roof and obstacle variety rather than typical PV candidates. The
+# categories below are chosen for the classes v0.1 is weakest in: existing_pv and chimney.
+# Expect a yield around a third: deep categories are noisy, and the SAM 3 roof filter is what
+# removes the solar farms, railway stations and interiors they drag in.
+version: v0.2
+out: datasets
+target_images: 2000
+min_obstacle_fraction: 0.3
+
+mapillary:
+  enabled: true          # already-downloaded frames in datasets/raw are not fetched again
+  camera_type: perspective
+  min_quality_score: 0.6
+  per_bbox_limit: 120
+  grid: 4
+  per_cell_limit: 100
+  image_size: thumb_2048_url
+  bboxes:
+    - { name: koeln-widdersdorf,     region: DE-NRW, west: 6.8380, south: 50.9560, east: 6.8620, north: 50.9700 }
+    - { name: koeln-rodenkirchen,    region: DE-NRW, west: 6.9850, south: 50.8780, east: 7.0100, north: 50.8930 }
+    - { name: bonn-roettgen,         region: DE-NRW, west: 7.0600, south: 50.6820, east: 7.0900, north: 50.6980 }
+    - { name: bonn-beuel-holzlar,    region: DE-NRW, west: 7.1650, south: 50.7380, east: 7.1950, north: 50.7540 }
+    - { name: duesseldorf-angermund, region: DE-NRW, west: 6.7700, south: 51.3200, east: 6.8000, north: 51.3380 }
+    - { name: duesseldorf-hubbelrath, region: DE-NRW, west: 6.8900, south: 51.2450, east: 6.9250, north: 51.2620 }
+    - { name: muenster-gievenbeck,   region: DE-NRW, west: 7.5700, south: 51.9550, east: 7.6000, north: 51.9720 }
+    - { name: muenster-hiltrup,      region: DE-NRW, west: 7.6250, south: 51.8950, east: 7.6600, north: 51.9130 }
+    - { name: aachen-laurensberg,    region: DE-NRW, west: 6.0450, south: 50.7950, east: 6.0800, north: 50.8130 }
+    - { name: essen-kettwig,         region: DE-NRW, west: 6.9250, south: 51.3550, east: 6.9600, north: 51.3720 }
+    - { name: dortmund-kirchhoerde,  region: DE-NRW, west: 7.4400, south: 51.4600, east: 7.4750, north: 51.4780 }
+    - { name: paderborn-schloss-neuhaus, region: DE-NRW, west: 8.7000, south: 51.7400, east: 8.7350, north: 51.7580 }
+
+commons:
+  enabled: true
+  per_source_limit: 400    # per query and per category
+  thumb_width: 1280        # a size Commons pre-renders; other widths are rate-limited
+  min_interval_s: 1.0      # be a polite client, their robot policy is enforced
+  region: DE
+  queries:
+    # whole buildings, right framing
+    - 'deepcat:"Houses in North Rhine-Westphalia"'
+    - 'deepcat:"Houses in Lower Saxony"'
+    - 'deepcat:"Houses in Schleswig-Holstein"'
+    - 'Einfamilienhaus'
+    # roof style diversity (SPEC: DE, NL, AT)
+    - 'deepcat:"Houses in the Netherlands"'
+    - 'deepcat:"Houses in Austria"'
+    # the categories v0.1 is thin on. Only region-scoped ones: a deep category without a
+    # country in its name wanders worldwide ("Dormer windows" returns Oxford and São Paulo).
+    - 'deepcat:"Photovoltaics in Germany"'
+    - 'deepcat:"Chimneys in Germany"'
+    - 'deepcat:"Roofs in Germany"'
+  categories: []
+  # Not available: snow guards. Commons has no such category, so snow_guard stays unrepresented
+  # until the own-photo subset covers it.
+
+own:
+  enabled: true
+  root: datasets/own
+  attribution: RoofSight contributors
+  region: DE-NRW
+
+dedupe:
+  hash_size: 16
+  max_hamming: 6
+
+anonymize:
+  backend: deface
+  threshold: 0.2
+  fail_if_missing: true
+
+roof_filter:
+  backend: sam3
+  min_roof_fraction: 0.015
+  prompt: roof
+
+split:
+  train: 0.70
+  val: 0.10
+  test: 0.15
+  verify: 0.05
+  verify_count: 50
+  frozen_test: configs/data/frozen_test_v0.1.json
+  seed: 20260101

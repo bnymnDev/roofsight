@@ -17,10 +17,25 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from roofsight.categories import EDGE_TYPES, ROOF_EDGE_ID, EdgeType, category_by_id
 
 Provenance = Literal["auto", "auto_edited", "manual"]
-Source = Literal["mapillary", "own"]
+Source = Literal["mapillary", "own", "commons"]
 Split = Literal["train", "val", "test", "verify"]
 
-ALLOWED_LICENSES: frozenset[str] = frozenset({"CC-BY-SA-4.0"})
+#: Licenses a record may carry. The collection is CC-BY-SA 4.0; everything here can be
+#: redistributed under it, and every record keeps its own license and attribution.
+ALLOWED_LICENSES: frozenset[str] = frozenset(
+    {
+        "CC-BY-SA-4.0",
+        "CC-BY-SA-3.0",
+        "CC-BY-SA-2.5",
+        "CC-BY-SA-2.0",
+        "CC-BY-4.0",
+        "CC-BY-3.0",
+        "CC-BY-2.5",
+        "CC-BY-2.0",
+        "CC0-1.0",
+        "public-domain",
+    }
+)
 SPLITS: tuple[Split, ...] = ("train", "val", "test", "verify")
 
 
