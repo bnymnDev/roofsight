@@ -39,11 +39,34 @@ Every annotation carries `provenance` ∈ {`auto`, `auto_edited`, `manual`}.
 | Source | License | Attribution | Geometry ground truth |
 |---|---|---|---|
 | Mapillary street-level images (API v4, bbox queries over residential areas; `camera_type=perspective`, quality score ≥ 0.6, no 360°) | CC-BY-SA 4.0 | `© <creator>, Mapillary, CC BY-SA 4.0, image <id>` | no |
+| Wikimedia Commons (CirrusSearch, `deepcat:` category trees, 1280 px thumbnails) | CC-BY-SA 4.0/3.0/2.x, CC-BY, CC0, public domain — recorded per image | `<author>, Wikimedia Commons, <license>, <file page url>` | no |
 | Own photos with an ARKit sidecar (`<name>.arkit.json`: intrinsics, pose, gravity, heading, depth map when LiDAR is present) | CC-BY-SA 4.0 | `RoofSight contributors` | yes |
 
 Every image record carries `source`, `license` and `attribution`. `roofsight data validate`
 fails on a record without them, on an image that was not anonymized, and on a `roof_edge`
 without `edge_type`.
+
+### What Commons is and is not good for
+
+Commons has the framing a PV planner sees: the whole building, shot from the pavement, roof
+large in the frame, at 3000 px. Two limits decide how it is used.
+
+- **The building stock skews to the notable.** People upload listed buildings, Gründerzeit
+  villas and half-timbered houses, not the 1975 house next door. Targeted searches for
+  `Einfamilienhaus`, `Satteldach` or `Neubaugebiet` return villas, historic town centres and
+  construction sites. Commons therefore brings roof and obstacle variety, not typical PV
+  candidates; those come from the own-photo subset.
+- **Deep categories wander.** `deepcat:"Dormer windows"` returns Oxford colleges and São Paulo.
+  Only categories with a region in their name are used, and the SAM 3 roof filter is what
+  removes what still slips through.
+
+Sizes: 21 920 files under "Houses in North Rhine-Westphalia", 17 018 Lower Saxony, 56 236
+Netherlands, 35 543 Austria. Commons has no snow-guard category, so `snow_guard` stays
+unrepresented until own photos cover it.
+
+Wikimedia rejects some HTTP clients by TLS fingerprint with a 403 and their robot-policy
+notice; `httpx` is among them, so the Commons client uses the standard library's `urllib`,
+paces itself at one request per second and honours `Retry-After`.
 
 ## Pipeline
 
