@@ -64,12 +64,36 @@ prompts (one image encoding, 35 cheap decodes), so `roofsight label` saves progr
 ## Review
 
 ```sh
-uv run roofsight review datasets/v0.1 export
-uv run fiftyone app launch          # http://localhost:5151; on Windows set PYTHONUTF8=1 first
-# accept / edit / delete, then:
+# the frozen test split only, and only what SAM 3 was reasonably sure about
+uv run roofsight review datasets/v0.1 export --split test --min-score 0.5
+uv run fiftyone app launch roofsight-review   # http://localhost:5151; Windows: set PYTHONUTF8=1
+# accept / edit / delete in the app, then:
 uv run roofsight review datasets/v0.1 import
 uv run roofsight review datasets/v0.1 stats
 ```
+
+Pass the dataset name to `fiftyone app launch`; without it the app opens empty and its start-up
+query fails with a 500.
+
+An export narrowed by `--split` or `--min-score` writes a scope file next to the dataset, and
+`import` replaces exactly that scope: other splits and instances below the score are carried
+over unchanged. Reviewing a subset can therefore never delete the rest of the dataset.
+
+### How much is there to review
+
+The v0.1 auto-labels average 42 instances per test frame, most of them low-scoring. Raising the
+export threshold cuts the pile before a human sees it:
+
+| `--min-score` | instances in the test split | per frame |
+|---|---|---|
+| none (0.3) | 6461 | 42 |
+| 0.4 | 4458 | 29 |
+| 0.5 | 3235 | 21 |
+| 0.6 | 2432 | 16 |
+
+0.5 is the recommended first pass: it halves the work and the frames still keep their planes.
+`roof_edge` is the exception, its median score is 0.36, so review edges in a second pass with
+`--min-score 0.3` once the obstacles are clean.
 
 Import compares every annotation against the auto labels and sets `provenance`:
 unchanged → `auto`, changed mask, category or edge type → `auto_edited`, new → `manual`.
