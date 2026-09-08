@@ -26,6 +26,16 @@ from typing import Any
 
 log = logging.getLogger(__name__)
 
+
+class CommonsThrottledError(RuntimeError):
+    """Wikimedia is rate-limiting this network, not just this request.
+
+    Their media hosts throttle by client address. A data-centre address is often limited to a
+    trickle no matter how slowly the client asks, while an ordinary connection downloads
+    thousands of files without a single 429. Collect from the machine you actually work on.
+    """
+
+
 API = "https://commons.wikimedia.org/w/api.php"
 USER_AGENT = "roofsight/0.1 (https://github.com/bnymnDev/roofsight)"
 FILE_PAGE = "https://commons.wikimedia.org/wiki/"
@@ -116,12 +126,17 @@ class CommonsClient:
         min_interval: float = 1.0,
         retries: int = 4,
         opener: Any = None,
+        max_retry_wait: float = 120.0,
+        throttle_giveup: int = 4,
     ) -> None:
         self.user_agent = user_agent
         self.min_interval = min_interval
         self.retries = retries
+        self.max_retry_wait = max_retry_wait
+        self.throttle_giveup = throttle_giveup
         self._opener = opener or urllib.request.build_opener()
         self._last = 0.0
+        self._throttled = 0
 
     def _wait(self) -> None:
         gap = self.min_interval - (time.monotonic() - self._last)
@@ -136,12 +151,22 @@ class CommonsClient:
             try:
                 with self._opener.open(req, timeout=120) as r:
                     data: bytes = r.read()
+                    self._throttled = 0
                     return data
             except urllib.error.HTTPError as e:
+                if e.code == 429:
+                    self._throttled += 1
+                    if self._throttled >= self.throttle_giveup:
+                        raise CommonsThrottledError(
+                            f"Wikimedia returned 429 on {self._throttled} requests in a row even "
+                            f"at {self.min_interval:.0f}s between them. This network is rate "
+                            "limited; run the collection from an ordinary connection."
+                        ) from e
                 if e.code not in (429, 500, 502, 503) or attempt == self.retries:
                     raise
                 after = e.headers.get("Retry-After") if e.headers else None
                 delay = float(after) if after and after.isdigit() else 2.0 * (2**attempt)
+                delay = min(delay, self.max_retry_wait)
                 log.warning("commons: HTTP %s, waiting %.0fs", e.code, delay)
                 time.sleep(delay)
             except (urllib.error.URLError, TimeoutError) as e:
