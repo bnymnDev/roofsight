@@ -1,0 +1,1043 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://bnymndev.github.io/roofsight/decisions/">
+      
+      
+        <link rel="prev" href="../model_card/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Decisions - roofsight</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#decisions" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="roofsight" class="md-header__button md-logo" aria-label="roofsight" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            roofsight
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Decisions
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-label="dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="indigo"  aria-label="light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/bnymnDev/roofsight" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bnymnDev/roofsight
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="roofsight" class="md-nav__button md-logo" aria-label="roofsight" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    roofsight
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/bnymnDev/roofsight" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    bnymnDev/roofsight
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dataset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../labeling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Labeling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmark/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmark
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../leaderboard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Leaderboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geometry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geometry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model_card/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model card
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#rf-detr-seg-as-the-primary-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RF-DETR-Seg as the primary model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coco-json-with-extra-fields-not-a-new-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        COCO JSON with extra fields, not a new format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roof_edge-as-a-thin-mask-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        roof_edge as a thin mask (open)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#small-obstacle-recall-does-not-consume-predictions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Small-obstacle recall does not consume predictions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plane-splitting-extends-edges-to-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plane splitting extends edges to lines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gravity-not-a-full-pose-inside-the-geometry-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gravity, not a full pose, inside the geometry package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hip-plan-angle-is-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hip plan angle is 45°
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapillary-coverage-risk-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapillary coverage risk (open)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#google-solar-api-for-the-recall-study-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Solar API for the recall study (open)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-cpu-stand-in-for-the-sam-3-roof-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No CPU stand-in for the SAM 3 roof filter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roof-filter-threshold-15-for-mapillary-frames-not-the-5-of-the-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roof filter threshold 1.5 % for Mapillary frames, not the 5 % of the SPEC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-labels-committed-gzipped-until-the-dvc-remote-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-labels committed gzipped until the DVC remote exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-images-come-from-and-why-none-of-it-is-easy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the images come from, and why none of it is easy
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#rf-detr-seg-as-the-primary-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RF-DETR-Seg as the primary model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#coco-json-with-extra-fields-not-a-new-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        COCO JSON with extra fields, not a new format
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roof_edge-as-a-thin-mask-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        roof_edge as a thin mask (open)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#small-obstacle-recall-does-not-consume-predictions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Small-obstacle recall does not consume predictions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plane-splitting-extends-edges-to-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plane splitting extends edges to lines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gravity-not-a-full-pose-inside-the-geometry-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gravity, not a full pose, inside the geometry package
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hip-plan-angle-is-45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hip plan angle is 45°
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mapillary-coverage-risk-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mapillary coverage risk (open)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#google-solar-api-for-the-recall-study-open" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Solar API for the recall study (open)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-cpu-stand-in-for-the-sam-3-roof-filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No CPU stand-in for the SAM 3 roof filter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#roof-filter-threshold-15-for-mapillary-frames-not-the-5-of-the-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Roof filter threshold 1.5 % for Mapillary frames, not the 5 % of the SPEC
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auto-labels-committed-gzipped-until-the-dvc-remote-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-labels committed gzipped until the DVC remote exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-the-images-come-from-and-why-none-of-it-is-easy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where the images come from, and why none of it is easy
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/bnymnDev/roofsight/edit/main/docs/decisions.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="decisions">Decisions</h1>
+<p>Why things are the way they are. Newest at the bottom.</p>
+<h2 id="rf-detr-seg-as-the-primary-model">RF-DETR-Seg as the primary model</h2>
+<p>Apache-2.0, NMS-free (one less thing to port to Core ML), Roboflow ships pretrained
+segmentation checkpoints at Nano/Small sizes that fit a phone. YOLO26-seg is faster to try but
+AGPL, so it is reported as a baseline and never shipped.</p>
+<h2 id="coco-json-with-extra-fields-not-a-new-format">COCO JSON with extra fields, not a new format</h2>
+<p>Every viewer, <code>pycocotools</code> and <code>rfdetr</code> read it unchanged. Our fields (<code>source</code>, <code>license</code>,
+<code>attribution</code>, <code>provenance</code>, <code>edge_type</code>, <code>split</code>) ride along and are validated by pydantic
+models on our side.</p>
+<h2 id="roof_edge-as-a-thin-mask-open"><code>roof_edge</code> as a thin mask (open)</h2>
+<p>The alternative is a separate line-detection head or post-hoc edge extraction from
+<code>roof_plane</code> masks. Thin masks let the same model produce everything the geometry needs; the
+question is whether RF-DETR trains well on them. Decide after the M2 numbers. If not, edges
+come from the plane-mask contours split at corners.</p>
+<h2 id="small-obstacle-recall-does-not-consume-predictions">Small-obstacle recall does not consume predictions</h2>
+<p>AP-style matching punishes a single prediction covering two adjacent skylights. For a PV
+planner that prediction is fine: the area is blocked either way. The metric asks whether every
+small obstacle was noticed, not whether instances were separated.</p>
+<h2 id="plane-splitting-extends-edges-to-lines">Plane splitting extends edges to lines</h2>
+<p>SAM 3 edge masks stop short of the plane border, so cutting along the raw mask leaves the two
+planes connected through a few pixels. The line fitted through the edge mask, rasterized
+across the whole image, cuts cleanly. Curved edges do not exist on the roofs we target.</p>
+<h2 id="gravity-not-a-full-pose-inside-the-geometry-package">Gravity, not a full pose, inside the geometry package</h2>
+<p>The estimator needs two directions in the camera frame: down and north. That keeps the Swift
+package free of ARKit and testable with a synthetic camera, and it means any pose source works
+(ARKit, ARCore, EXIF + compass) as long as it can give those two vectors.</p>
+<h2 id="hip-plan-angle-is-45">Hip plan angle is 45°</h2>
+<p>True for regular hip roofs, wrong for irregular ones. A verge is preferred whenever visible
+(its 90° is exact); hips are the fallback with the same confidence penalty as a short edge.
+Multi-view would remove the assumption; that is v0.2.</p>
+<h2 id="mapillary-coverage-risk-open">Mapillary coverage risk (open)</h2>
+<p>Residential streets in NRW may be thin on Mapillary. If the first build yields &lt; 300 usable
+images, the own-photo campaign (a weekend walk, 200 houses) moves from M3 to M1.</p>
+<h2 id="google-solar-api-for-the-recall-study-open">Google Solar API for the recall study (open)</h2>
+<p>Cost and terms of service need checking before M4. Fallback: an off-the-shelf aerial model on
+NRW's open orthophotos (opengeodata.nrw.de).</p>
+<h2 id="no-cpu-stand-in-for-the-sam-3-roof-filter">No CPU stand-in for the SAM 3 roof filter</h2>
+<p>The first v0.1 build ran on a machine without a GPU, so three cheap replacements for the SAM 3
+roof-presence filter were tried on 16 real Mapillary frames from the NRW boxes, hand-labelled
+roof / no roof:</p>
+<table>
+<thead>
+<tr>
+<th>Candidate</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLIP ViT-B/32 zero-shot, full image or upper crops, several prompt sets</td>
+<td>near random: clear roofs scored &lt; 0.06, a hedge scored 0.98</td>
+</tr>
+<tr>
+<td>SegFormer-B0 ADE20K, building + house pixel fraction</td>
+<td>noise barriers along a motorway 0.34, a house filling a third of the frame 0.003</td>
+</tr>
+<tr>
+<td>Grounding DINO tiny, prompt "a roof of a house"</td>
+<td>23 s per image on CPU and boxes covering the whole frame on a motorway</td>
+</tr>
+</tbody>
+</table>
+<p>Street-level frames are dominated by road, sky and trees; the roof is small, high and often
+partly hidden. Nothing lighter than a promptable segmenter separated the cases. Rather than
+ship a filter that deletes usable images, v0.1 keeps every downloaded frame and the roof
+decision is made in the FiftyOne review: reviewers tag frames without a usable roof, the tags
+become a scores file, and <code>roofsight data filter --backend file</code> drops them. When a GPU is
+available, <code>--backend sam3</code> does the same automatically.</p>
+<h2 id="roof-filter-threshold-15-for-mapillary-frames-not-the-5-of-the-spec">Roof filter threshold 1.5 % for Mapillary frames, not the 5 % of the SPEC</h2>
+<p>The SPEC's "keep if the roof mask covers ≥ 5 % of the image" was written with phone photos in
+mind: an installer stands in front of the house and the roof fills a good part of the frame.
+Mapillary frames are dashcam shots at 2048 px from the middle of the road; the same roof is
+far away and small. SAM 3 over all 1 418 frames of build 1 gave this distribution of the
+roof-mask fraction (union of all roof instances):</p>
+<table>
+<thead>
+<tr>
+<th>threshold</th>
+<th>0.5 %</th>
+<th>1 %</th>
+<th>1.5 %</th>
+<th>2 %</th>
+<th>3 %</th>
+<th>5 %</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>frames kept</td>
+<td>934</td>
+<td>724</td>
+<td>560</td>
+<td>440</td>
+<td>293</td>
+<td>93</td>
+</tr>
+</tbody>
+</table>
+<p>267 frames had no roof at all. At 5 % the build would miss the 500-image target by a factor of
+five; at 1.5 % it keeps 560 with a margin for the review to drop more. Frames at 1.5–2 % show
+whole houses with clearly delineated roofs, big enough for <code>roof_plane</code> and the larger
+obstacles (chimney, dormer, existing PV), too small for vents and snow guards. Those categories
+will come mainly from the own-photo subset, where the 5 % rule applies unchanged. Per-image
+scores stay in <code>datasets/v0.1/roof_stats.json</code> so the threshold can be revisited without
+re-running SAM 3.</p>
+<h2 id="auto-labels-committed-gzipped-until-the-dvc-remote-exists">Auto-labels committed gzipped until the DVC remote exists</h2>
+<p>The rule is that datasets go through DVC. The first labeling pass ran on an ephemeral machine
+without an S3/R2 remote, and 21 870 SAM 3 annotations over 560 images (13.5 MB JSON, 2–3 MB
+gzipped) are too much work to lose. So <code>datasets/v0.1/annotations.json.gz</code> is in git next to
+the manifest, as a stopgap with three properties: it is small, it is the <em>auto</em> layer only
+(provenance <code>auto</code>, unreviewed), and it moves to DVC the moment a remote is configured.
+Reviewed annotations will not be committed to git.</p>
+<h2 id="where-the-images-come-from-and-why-none-of-it-is-easy">Where the images come from, and why none of it is easy</h2>
+<p>Mapillary was the SPEC's primary source. Once 560 frames were on disk it was clear that the
+perspective is wrong for the task, not merely noisy: the camera sits in a car in the middle of
+the road, the house is twenty metres away behind a hedge and parked cars, and the roof occupies
+a few percent of a wide frame. Ranking all 560 by roof area and looking at the best two dozen
+shows mostly road. The yield is roughly one usable frame in six, and downloading ten times more
+produces ten times more of the same geometry.</p>
+<p>Wikimedia Commons was added as a second source. It has exactly the framing a PV planner sees —
+the whole building, from the pavement, roof large in frame, 3000 px — under CC-BY-SA, and there
+are 21 920 files for North Rhine-Westphalia alone. Its bias is the mirror image of Mapillary's:
+people photograph and upload what is listed or otherwise notable, so the stock is Gründerzeit
+villas, half-timbered houses and town centres rather than the 1975 house next door. Searches
+aimed at ordinary housing (<code>Einfamilienhaus</code>, <code>Satteldach</code>, <code>Neubaugebiet</code>) return villas,
+historic centres and construction sites. Deep categories without a region in their name wander
+worldwide. Commons therefore buys roof and obstacle variety, not typical PV candidates.</p>
+<p>The imagery that matches the task exactly — an estate agent's photo of a house for sale — is
+copyrighted and cannot enter a CC-BY-SA dataset, whatever its quality.</p>
+<p>What remains is the own-photo subset: someone on the pavement, phone at chest height, ten
+metres from the house. It is the only source that supplies the right framing, the full rights
+and the ARKit pose the geometry half of the project needs. The SPEC treats it as a fallback for
+thin Mapillary coverage; on this evidence it is the primary source, and Mapillary and Commons
+are the supplements.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
